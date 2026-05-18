@@ -80,4 +80,26 @@ describe("CategoryForm", () => {
 
     expect(slugInput).toHaveValue("ai-directory");
   });
+
+  it("keeps auto-slug mode when editing a category with a blank saved slug", () => {
+    render(
+      <CategoryForm
+        onSubmit={vi.fn()}
+        initialValues={{
+          name: "AI Tools",
+          slug: "",
+          iconKey: "ai",
+          sortOrder: 1,
+          isVisible: true,
+        }}
+      />,
+    );
+
+    const nameInput = screen.getByLabelText(/^name$/i);
+    const slugInput = screen.getByLabelText(/^slug$/i);
+
+    fireEvent.change(nameInput, { target: { value: "AI Tools Updated" } });
+
+    expect(slugInput).toHaveValue("ai-tools-updated");
+  });
 });

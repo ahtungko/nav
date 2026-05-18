@@ -35,6 +35,7 @@ const websites = [
     id: "site_beta",
     title: "Beta Site",
     url: "https://beta.example.com",
+    faviconUrl: "https://cdn.example.com/beta.png",
     categoryId: "cat_alpha",
     sortOrder: 1,
     isVisible: true,
@@ -45,6 +46,7 @@ const websites = [
     id: "site_alpha",
     title: "Alpha Site",
     url: "https://alpha.example.com",
+    faviconUrl: "https://cdn.example.com/alpha.png",
     categoryId: "cat_zeta",
     sortOrder: 1,
     isVisible: true,
@@ -124,6 +126,7 @@ describe("AdminRoute", () => {
 
     expect(screen.getByRole("heading", { name: /editing alpha site/i })).toBeInTheDocument();
     expect(screen.getByDisplayValue("https://alpha.example.com")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("https://cdn.example.com/alpha.png")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: /^Publish$/i }));
     expect(await screen.findByRole("heading", { name: /release draft snapshot/i })).toBeInTheDocument();

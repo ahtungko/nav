@@ -289,6 +289,7 @@ export function AdminPage({
                   ? {
                       title: selectedWebsite.title,
                       url: selectedWebsite.url,
+                      faviconUrl: selectedWebsite.faviconUrl ?? "",
                       categoryId: selectedWebsite.categoryId,
                       sortOrder: selectedWebsite.sortOrder,
                       isVisible: selectedWebsite.isVisible,

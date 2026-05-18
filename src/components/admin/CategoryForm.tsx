@@ -53,14 +53,14 @@ function createFormValues(initialValues?: CategoryFormValues | null): CategoryFo
 
 export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
   const [values, setValues] = useState<CategoryFormValues>(() => createFormValues(initialValues));
-  const [hasManualSlugOverride, setHasManualSlugOverride] = useState(() => Boolean(initialValues));
+  const [hasManualSlugOverride, setHasManualSlugOverride] = useState(() => Boolean(initialValues?.slug));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const iconOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
     setValues(createFormValues(initialValues));
-    setHasManualSlugOverride(Boolean(initialValues));
+    setHasManualSlugOverride(Boolean(initialValues?.slug));
     setErrorMessage(null);
   }, [initialValues]);
 
