@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true,
+    "types": ["node", "@cloudflare/workers-types", "@cloudflare/vitest-pool-workers", "vitest/globals"]
+  },
+  "include": ["env.d.ts", "vite.config.ts", "vitest.config.ts", "vitest.worker.config.ts", "vitest.frontend.config.ts", "worker", "tests/worker"]
+}

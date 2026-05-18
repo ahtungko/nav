@@ -1,0 +1,41 @@
+import { z } from "zod";
+
+const nonBlankString = z.string().trim().min(1);
+
+const safeWebsiteUrlSchema = z.string().url().refine((value) => {
+  const protocol = new URL(value).protocol;
+  return protocol === "http:" || protocol === "https:";
+}, "Expected an http or https url");
+
+export const categoryInputSchema = z.object({
+  name: nonBlankString,
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  iconKey: nonBlankString,
+  sortOrder: z.number().int(),
+  isVisible: z.boolean(),
+});
+
+export const websiteInputSchema = z.object({
+  title: nonBlankString,
+  url: safeWebsiteUrlSchema,
+  categoryId: z.string().min(1),
+  sortOrder: z.number().int(),
+  isVisible: z.boolean(),
+});
+
+export async function readJson(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+export function readString(body: unknown, key: string): string | null {
+  if (typeof body !== "object" || body === null) {
+    return null;
+  }
+
+  const value = (body as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : null;
+}

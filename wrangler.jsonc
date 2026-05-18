@@ -1,0 +1,25 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "vyxolabs-hub",
+	"compatibility_date": "2026-05-17",
+	"main": "./worker/index.ts",
+	"assets": {
+		"not_found_handling": "single-page-application",
+		"run_worker_first": [
+			"/api/*"
+		]
+	},
+	"d1_databases": [
+		{
+			"binding": "vyxolabs_hub",
+			"database_name": "vyxolabs-hub",
+			"database_id": "8df416e1-d300-43cc-8856-435c7a912cd5"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "PUBLIC_SNAPSHOT",
+			"id": "a4cac2412fbd44a4bf8666376bc2ec98"
+		}
+	]
+}

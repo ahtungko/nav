@@ -1,0 +1,86 @@
+:root {
+  color-scheme: light;
+  --app-background-image: url("/daymode.png");
+  --app-background:
+    linear-gradient(180deg, rgba(240, 236, 241, 0.34), rgba(156, 137, 154, 0.56)),
+    radial-gradient(circle at 50% 42%, rgba(255, 203, 223, 0.12), transparent 32%),
+    radial-gradient(circle at 18% 22%, rgba(158, 181, 218, 0.08), transparent 28%),
+    var(--app-background-image) center center / cover no-repeat fixed,
+    linear-gradient(180deg, #aec5ea 0%, #edd9e4 52%, #cf9fb2 100%);
+  --color-text: #35394b;
+  --color-heading: #44495f;
+  --color-muted: rgba(74, 80, 99, 0.78);
+  --color-soft: rgba(98, 103, 121, 0.68);
+  --color-brand: #d97aa6;
+  --color-brand-strong: #b96190;
+  --color-brand-accent: #e7a6c4;
+  --color-border: rgba(255, 255, 255, 0.3);
+  --color-border-strong: rgba(98, 104, 128, 0.18);
+  --color-surface: rgba(255, 255, 255, 0.16);
+  --color-surface-strong: rgba(255, 255, 255, 0.24);
+  --color-surface-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+  --color-card-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(245, 240, 247, 0.18));
+  --color-card-bg-active: linear-gradient(180deg, rgba(255, 242, 248, 0.52), rgba(238, 227, 244, 0.26));
+  --color-tag-bg: rgba(255, 255, 255, 0.36);
+  --color-tag-text: #535a71;
+  --color-row-divider: rgba(98, 104, 128, 0.14);
+  --color-empty-border: rgba(98, 104, 128, 0.22);
+  --color-empty-bg: rgba(255, 255, 255, 0.18);
+  --color-search-icon: rgba(86, 92, 111, 0.74);
+  --color-scene-glow-a: rgba(255, 125, 178, 0.2);
+  --color-scene-glow-b: rgba(112, 136, 255, 0.14);
+  --color-stat-value: #3e4458;
+  --shadow-soft: 0 18px 40px rgba(110, 102, 128, 0.12);
+  --shadow-card: 0 18px 46px rgba(110, 102, 128, 0.16);
+  --shadow-panel: 0 22px 60px rgba(110, 102, 128, 0.16);
+  --shadow-brand: 0 18px 30px rgba(235, 109, 162, 0.2);
+  --blur-strong: blur(20px);
+  --radius-xl: 30px;
+  --radius-lg: 24px;
+  --radius-md: 18px;
+  --shell-width: 1240px;
+}
+
+:root[data-theme="night"] {
+  color-scheme: dark;
+  --app-background-image: url("/darkmode.png");
+  --app-background:
+    linear-gradient(180deg, rgba(7, 10, 22, 0.34), rgba(5, 7, 14, 0.7)),
+    radial-gradient(circle at 50% 42%, rgba(255, 170, 209, 0.1), transparent 24%),
+    var(--app-background-image) center center / cover no-repeat fixed,
+    linear-gradient(180deg, #0a1122 0%, #090d19 46%, #05070f 100%);
+  --color-text: #f5f3ff;
+  --color-heading: rgba(255, 248, 255, 0.96);
+  --color-muted: rgba(242, 240, 255, 0.76);
+  --color-soft: rgba(242, 240, 255, 0.58);
+  --color-brand: #f48ab5;
+  --color-brand-strong: #ff73a9;
+  --color-brand-accent: #ffc7dc;
+  --color-border: rgba(255, 255, 255, 0.11);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+  --color-surface: rgba(255, 255, 255, 0.08);
+  --color-surface-strong: rgba(255, 255, 255, 0.1);
+  --color-surface-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  --color-card-bg: linear-gradient(180deg, rgba(34, 39, 68, 0.36), rgba(12, 16, 32, 0.62));
+  --color-card-bg-active: linear-gradient(180deg, rgba(68, 54, 100, 0.48), rgba(18, 22, 42, 0.72));
+  --color-tag-bg: rgba(255, 255, 255, 0.08);
+  --color-tag-text: rgba(255, 245, 252, 0.9);
+  --color-row-divider: rgba(255, 255, 255, 0.08);
+  --color-empty-border: rgba(255, 255, 255, 0.16);
+  --color-empty-bg: rgba(11, 14, 28, 0.28);
+  --color-search-icon: rgba(255, 255, 255, 0.7);
+  --color-scene-glow-a: rgba(255, 125, 178, 0.22);
+  --color-scene-glow-b: rgba(112, 136, 255, 0.16);
+  --color-stat-value: #fff6fb;
+  --shadow-soft: 0 24px 80px rgba(2, 6, 20, 0.42);
+  --shadow-card: 0 18px 46px rgba(5, 8, 20, 0.26);
+  --shadow-panel: 0 22px 60px rgba(3, 7, 20, 0.32);
+  --shadow-brand: 0 18px 30px rgba(235, 109, 162, 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :root[data-theme="auto"] {
+    color-scheme: dark;
+  }
+}
