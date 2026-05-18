@@ -58,4 +58,26 @@ describe("CategoryForm", () => {
 
     expect(slugInput).toHaveValue("custom-slug");
   });
+
+  it("preserves an existing saved slug while the name changes", () => {
+    render(
+      <CategoryForm
+        onSubmit={vi.fn()}
+        initialValues={{
+          name: "AI Tools",
+          slug: "ai-directory",
+          iconKey: "ai",
+          sortOrder: 1,
+          isVisible: true,
+        }}
+      />,
+    );
+
+    const nameInput = screen.getByLabelText(/^name$/i);
+    const slugInput = screen.getByLabelText(/^slug$/i);
+
+    fireEvent.change(nameInput, { target: { value: "AI Tools Updated" } });
+
+    expect(slugInput).toHaveValue("ai-directory");
+  });
 });

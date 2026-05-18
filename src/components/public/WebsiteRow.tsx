@@ -1,4 +1,4 @@
-import { getFaviconUrl } from "../../lib/favicon";
+import { getWebsiteFaviconUrl } from "../../lib/favicon";
 import type { PublishedSnapshot } from "../../types/snapshot";
 
 type WebsiteRowProps = {
@@ -19,11 +19,12 @@ function getHostname(url: string) {
 
 export function WebsiteRow({ website, categoryName, isPinned, onTogglePinned, compact = false }: WebsiteRowProps) {
   const hostname = getHostname(website.url);
+  const faviconUrl = (website as typeof website & { faviconUrl?: string | null }).faviconUrl;
 
   return (
     <article className={`website-row${compact ? " website-row--compact" : ""}`}>
       <div className="website-row__brand" aria-hidden="true">
-        <img src={getFaviconUrl(website.url)} alt="" loading="lazy" />
+        <img src={getWebsiteFaviconUrl({ url: website.url, faviconUrl })} alt="" loading="lazy" />
       </div>
 
       <div className="website-row__body">

@@ -7,6 +7,16 @@ export function getFaviconUrl(url: string): string {
   }
 }
 
+export function getWebsiteFaviconUrl(input: { url: string; faviconUrl?: string | null }): string {
+  const override = input.faviconUrl?.trim();
+
+  if (override) {
+    return override;
+  }
+
+  return getFaviconUrl(input.url);
+}
+
 function buildFallbackFaviconDataUrl(seed: string): string {
   const glyph = seed.trim().charAt(0).toUpperCase() || "?";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#d97aa6"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#ffffff">${escapeXml(glyph)}</text></svg>`;

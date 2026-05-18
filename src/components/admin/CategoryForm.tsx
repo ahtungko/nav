@@ -20,6 +20,10 @@ function normalizeIconKey(iconKey: string | null | undefined) {
   return CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey)?.key ?? DEFAULT_CATEGORY_ICON_KEY;
 }
 
+function slugifyCategoryName(name: string) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+}
+
 const emptyValues: CategoryFormValues = {
   name: "",
   slug: "",
@@ -49,12 +53,14 @@ function createFormValues(initialValues?: CategoryFormValues | null): CategoryFo
 
 export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
   const [values, setValues] = useState<CategoryFormValues>(() => createFormValues(initialValues));
+  const [hasManualSlugOverride, setHasManualSlugOverride] = useState(() => Boolean(initialValues));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const iconOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
     setValues(createFormValues(initialValues));
+    setHasManualSlugOverride(Boolean(initialValues));
     setErrorMessage(null);
   }, [initialValues]);
 
@@ -70,6 +76,7 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
       });
       if (!initialValues) {
         setValues(emptyValues);
+        setHasManualSlugOverride(false);
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to save the category.");
@@ -152,7 +159,15 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
         <span>Name</span>
         <input
           value={values.name}
-          onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
+          onChange={(event) => {
+            const nextName = event.target.value;
+
+            setValues((current) => ({
+              ...current,
+              name: nextName,
+              slug: hasManualSlugOverride ? current.slug : slugifyCategoryName(nextName),
+            }));
+          }}
           placeholder="AI"
           required
         />
@@ -162,7 +177,10 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
         <span>Slug</span>
         <input
           value={values.slug}
-          onChange={(event) => setValues((current) => ({ ...current, slug: event.target.value }))}
+          onChange={(event) => {
+            setHasManualSlugOverride(true);
+            setValues((current) => ({ ...current, slug: event.target.value }));
+          }}
           placeholder="ai"
           required
         />

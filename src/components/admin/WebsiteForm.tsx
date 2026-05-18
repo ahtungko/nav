@@ -4,6 +4,7 @@ import type { Category } from "../../types/category";
 export type WebsiteFormValues = {
   title: string;
   url: string;
+  faviconUrl: string;
   categoryId: string;
   sortOrder: number;
   isVisible: boolean;
@@ -12,6 +13,7 @@ export type WebsiteFormValues = {
 const emptyValues: WebsiteFormValues = {
   title: "",
   url: "https://",
+  faviconUrl: "",
   categoryId: "",
   sortOrder: 0,
   isVisible: true,
@@ -26,6 +28,20 @@ type WebsiteFormProps = {
   submitLabel?: string;
 };
 
+function createFormValues(initialValues?: WebsiteFormValues | null, categories: Category[] = []): WebsiteFormValues {
+  if (!initialValues) {
+    return {
+      ...emptyValues,
+      categoryId: categories[0]?.id ?? "",
+    };
+  }
+
+  return {
+    ...emptyValues,
+    ...initialValues,
+  };
+}
+
 export function WebsiteForm({
   categories,
   selectedTitle,
@@ -34,17 +50,12 @@ export function WebsiteForm({
   onCancel,
   submitLabel = "Save website",
 }: WebsiteFormProps) {
-  const [values, setValues] = useState<WebsiteFormValues>(initialValues ?? emptyValues);
+  const [values, setValues] = useState<WebsiteFormValues>(() => createFormValues(initialValues, categories));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setValues(
-      initialValues ?? {
-        ...emptyValues,
-        categoryId: categories[0]?.id ?? "",
-      },
-    );
+    setValues(createFormValues(initialValues, categories));
     setErrorMessage(null);
   }, [categories, initialValues]);
 
@@ -56,10 +67,7 @@ export function WebsiteForm({
     try {
       await onSubmit(values);
       if (!initialValues) {
-        setValues({
-          ...emptyValues,
-          categoryId: categories[0]?.id ?? "",
-        });
+        setValues(createFormValues(null, categories));
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Unable to save the website.");
@@ -99,6 +107,16 @@ export function WebsiteForm({
           onChange={(event) => setValues((current) => ({ ...current, url: event.target.value }))}
           placeholder="https://chatgpt.com"
           required
+        />
+      </label>
+
+      <label className="admin-field">
+        <span>Favicon URL (optional)</span>
+        <input
+          type="url"
+          value={values.faviconUrl}
+          onChange={(event) => setValues((current) => ({ ...current, faviconUrl: event.target.value }))}
+          placeholder="https://static.example.com/favicon.png"
         />
       </label>
 
