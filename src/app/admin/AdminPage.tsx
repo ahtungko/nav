@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { AdminCommandHeader } from "../../components/admin/AdminCommandHeader";
+import { AdminStatusBanner, type AdminFeedback } from "../../components/admin/AdminStatusBanner";
 import { AdminTabs, type AdminTabId } from "../../components/admin/AdminTabs";
 import { CategoriesTable } from "../../components/admin/CategoriesTable";
 import { CategoryForm, type CategoryFormValues } from "../../components/admin/CategoryForm";
@@ -11,9 +13,9 @@ import type { Website } from "../../types/website";
 type AdminPageProps = {
   categories: Category[];
   websites: Website[];
-  publishMessage?: string | null;
+  publishFeedback?: AdminFeedback | null;
   lastPublishedAt?: string | null;
-  globalMessage?: string | null;
+  globalFeedback?: AdminFeedback | null;
   onCreateCategory: (values: CategoryFormValues) => Promise<void>;
   onUpdateCategory: (categoryId: string, values: CategoryFormValues) => Promise<void>;
   onDeleteCategory: (category: Category) => Promise<void>;
@@ -44,9 +46,9 @@ function sortWebsites(websites: Website[], categories: Category[]): Website[] {
 export function AdminPage({
   categories,
   websites,
-  publishMessage,
+  publishFeedback,
   lastPublishedAt,
-  globalMessage,
+  globalFeedback,
   onCreateCategory,
   onUpdateCategory,
   onDeleteCategory,
@@ -120,42 +122,29 @@ export function AdminPage({
   const visibleWebsiteCount = sortedWebsites.filter((website) => website.isVisible).length;
 
   return (
-    <main className="admin-shell">
-      <section className="admin-hero">
-        <div>
-          <p className="admin-hero__eyebrow">vyxolabs Admin</p>
-          <h1>Manage categories, websites, and publish snapshots.</h1>
-          <p>Draft changes stay in D1 until you publish a fresh `public-site:v1` snapshot.</p>
-        </div>
-        <div className="admin-hero__stats" aria-label="Admin summary">
-          <article>
-            <span>Categories</span>
-            <strong>{sortedCategories.length}</strong>
-          </article>
-          <article>
-            <span>Websites</span>
-            <strong>{sortedWebsites.length}</strong>
-          </article>
-          <article>
-            <span>Visible websites</span>
-            <strong>{visibleWebsiteCount}</strong>
-          </article>
-        </div>
-      </section>
+    <div className="admin-command-center">
+      <AdminCommandHeader
+        categoryCount={sortedCategories.length}
+        websiteCount={sortedWebsites.length}
+        visibleCategoryCount={visibleCategoryCount}
+        visibleWebsiteCount={visibleWebsiteCount}
+        lastPublishedAt={lastPublishedAt}
+        onPublish={onPublish}
+      />
 
+      <AdminStatusBanner feedback={globalFeedback} />
       <AdminTabs activeTab={activeTab} onChange={setActiveTab} />
-
-      {globalMessage ? <p className="admin-feedback">{globalMessage}</p> : null}
 
       {activeTab === "overview" ? (
         <section className="admin-overview-grid">
           <article className="admin-panel">
             <div className="admin-panel__header">
               <div>
-                <h3>Draft health</h3>
-                <p>Quick snapshot of the current draft inventory.</p>
+                <h2>Workspace overview</h2>
+                <p>Review draft health before moving into category, website, or publish workflows.</p>
               </div>
             </div>
+
             <div className="admin-metrics">
               <article>
                 <span>Total categories</span>
@@ -180,130 +169,144 @@ export function AdminPage({
             categoryCount={visibleCategoryCount}
             websiteCount={visibleWebsiteCount}
             lastPublishedAt={lastPublishedAt}
-            message={publishMessage}
+            feedback={publishFeedback}
             onPublish={onPublish}
           />
         </section>
       ) : null}
 
       {activeTab === "categories" ? (
-        <section className="admin-section-grid">
-          <div className="admin-panel">
-            <div className="admin-panel__header">
-              <div>
-                <h3>Filter categories</h3>
-                <p>Search by name or slug.</p>
+        <section className="admin-workspace-grid">
+          <div className="admin-workspace-grid__main">
+            <article className="admin-panel">
+              <div className="admin-panel__header">
+                <div>
+                  <h2>Category workspace</h2>
+                  <p>Search draft categories, then edit the selected row in the sticky side panel.</p>
+                </div>
               </div>
-            </div>
-            <label className="admin-field">
-              <span>Search</span>
-              <input value={categoryQuery} onChange={(event) => setCategoryQuery(event.target.value)} placeholder="Search categories" />
-            </label>
+
+              <label className="admin-field">
+                <span>Search</span>
+                <input value={categoryQuery} onChange={(event) => setCategoryQuery(event.target.value)} placeholder="Search categories" />
+              </label>
+            </article>
+
+            <CategoriesTable
+              categories={filteredCategories}
+              selectedCategoryId={selectedCategoryId}
+              onEdit={(category) => setSelectedCategoryId(category.id)}
+              onDelete={async (category) => {
+                await onDeleteCategory(category);
+                if (selectedCategoryId === category.id) {
+                  setSelectedCategoryId(null);
+                }
+              }}
+              onToggleVisible={onToggleCategoryVisibility}
+            />
           </div>
 
-          <CategoryForm
-            initialValues={
-              selectedCategory
-                ? {
-                    name: selectedCategory.name,
-                    slug: selectedCategory.slug,
-                    iconKey: selectedCategory.iconKey,
-                    sortOrder: selectedCategory.sortOrder,
-                    isVisible: selectedCategory.isVisible,
-                  }
-                : null
-            }
-            submitLabel={selectedCategory ? "Update category" : "Create category"}
-            onSubmit={async (values) => {
-              if (selectedCategory) {
-                await onUpdateCategory(selectedCategory.id, values);
-              } else {
-                await onCreateCategory(values);
+          <div className="admin-workspace-grid__sidebar">
+            <CategoryForm
+              selectedName={selectedCategory?.name ?? null}
+              initialValues={
+                selectedCategory
+                  ? {
+                      name: selectedCategory.name,
+                      slug: selectedCategory.slug,
+                      iconKey: selectedCategory.iconKey,
+                      sortOrder: selectedCategory.sortOrder,
+                      isVisible: selectedCategory.isVisible,
+                    }
+                  : null
               }
-              setSelectedCategoryId(null);
-            }}
-            onCancel={selectedCategory ? () => setSelectedCategoryId(null) : undefined}
-          />
-
-          <CategoriesTable
-            categories={filteredCategories}
-            onEdit={(category) => setSelectedCategoryId(category.id)}
-            onDelete={async (category) => {
-              await onDeleteCategory(category);
-              if (selectedCategoryId === category.id) {
+              submitLabel={selectedCategory ? "Save category" : "Create category"}
+              onSubmit={async (values) => {
+                if (selectedCategory) {
+                  await onUpdateCategory(selectedCategory.id, values);
+                } else {
+                  await onCreateCategory(values);
+                }
                 setSelectedCategoryId(null);
-              }
-            }}
-            onToggleVisible={onToggleCategoryVisibility}
-          />
+              }}
+              onCancel={selectedCategory ? () => setSelectedCategoryId(null) : undefined}
+            />
+          </div>
         </section>
       ) : null}
 
       {activeTab === "websites" ? (
-        <section className="admin-section-grid">
-          <div className="admin-panel">
-            <div className="admin-panel__header">
-              <div>
-                <h3>Filter websites</h3>
-                <p>Search titles or URLs, and narrow by category.</p>
+        <section className="admin-workspace-grid">
+          <div className="admin-workspace-grid__main">
+            <article className="admin-panel">
+              <div className="admin-panel__header">
+                <div>
+                  <h2>Website workspace</h2>
+                  <p>Search titles or URLs, narrow by category, then update the selected row in the editor.</p>
+                </div>
               </div>
-            </div>
-            <div className="admin-filter-grid">
-              <label className="admin-field">
-                <span>Search</span>
-                <input value={websiteQuery} onChange={(event) => setWebsiteQuery(event.target.value)} placeholder="Search websites" />
-              </label>
-              <label className="admin-field">
-                <span>Category</span>
-                <select value={websiteCategoryFilter} onChange={(event) => setWebsiteCategoryFilter(event.target.value)}>
-                  <option value="all">All categories</option>
-                  {sortedCategories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+
+              <div className="admin-filter-grid">
+                <label className="admin-field">
+                  <span>Search</span>
+                  <input value={websiteQuery} onChange={(event) => setWebsiteQuery(event.target.value)} placeholder="Search websites" />
+                </label>
+                <label className="admin-field">
+                  <span>Category</span>
+                  <select value={websiteCategoryFilter} onChange={(event) => setWebsiteCategoryFilter(event.target.value)}>
+                    <option value="all">All categories</option>
+                    {sortedCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </article>
+
+            <WebsitesTable
+              websites={filteredWebsites}
+              selectedWebsiteId={selectedWebsiteId}
+              categoriesById={categoriesById}
+              onEdit={(website) => setSelectedWebsiteId(website.id)}
+              onDelete={async (website) => {
+                await onDeleteWebsite(website);
+                if (selectedWebsiteId === website.id) {
+                  setSelectedWebsiteId(null);
+                }
+              }}
+              onToggleVisible={onToggleWebsiteVisibility}
+            />
           </div>
 
-          <WebsiteForm
-            categories={sortedCategories}
-            initialValues={
-              selectedWebsite
-                ? {
-                    title: selectedWebsite.title,
-                    url: selectedWebsite.url,
-                    categoryId: selectedWebsite.categoryId,
-                    sortOrder: selectedWebsite.sortOrder,
-                    isVisible: selectedWebsite.isVisible,
-                  }
-                : null
-            }
-            submitLabel={selectedWebsite ? "Update website" : "Create website"}
-            onSubmit={async (values) => {
-              if (selectedWebsite) {
-                await onUpdateWebsite(selectedWebsite.id, values);
-              } else {
-                await onCreateWebsite(values);
+          <div className="admin-workspace-grid__sidebar">
+            <WebsiteForm
+              categories={sortedCategories}
+              selectedTitle={selectedWebsite?.title ?? null}
+              initialValues={
+                selectedWebsite
+                  ? {
+                      title: selectedWebsite.title,
+                      url: selectedWebsite.url,
+                      categoryId: selectedWebsite.categoryId,
+                      sortOrder: selectedWebsite.sortOrder,
+                      isVisible: selectedWebsite.isVisible,
+                    }
+                  : null
               }
-              setSelectedWebsiteId(null);
-            }}
-            onCancel={selectedWebsite ? () => setSelectedWebsiteId(null) : undefined}
-          />
-
-          <WebsitesTable
-            websites={filteredWebsites}
-            categoriesById={categoriesById}
-            onEdit={(website) => setSelectedWebsiteId(website.id)}
-            onDelete={async (website) => {
-              await onDeleteWebsite(website);
-              if (selectedWebsiteId === website.id) {
+              submitLabel={selectedWebsite ? "Save website" : "Create website"}
+              onSubmit={async (values) => {
+                if (selectedWebsite) {
+                  await onUpdateWebsite(selectedWebsite.id, values);
+                } else {
+                  await onCreateWebsite(values);
+                }
                 setSelectedWebsiteId(null);
-              }
-            }}
-            onToggleVisible={onToggleWebsiteVisibility}
-          />
+              }}
+              onCancel={selectedWebsite ? () => setSelectedWebsiteId(null) : undefined}
+            />
+          </div>
         </section>
       ) : null}
 
@@ -312,10 +315,10 @@ export function AdminPage({
           categoryCount={visibleCategoryCount}
           websiteCount={visibleWebsiteCount}
           lastPublishedAt={lastPublishedAt}
-          message={publishMessage}
+          feedback={publishFeedback}
           onPublish={onPublish}
         />
       ) : null}
-    </main>
+    </div>
   );
 }

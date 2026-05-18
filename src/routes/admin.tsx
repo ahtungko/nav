@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { AdminPage } from "../app/admin/AdminPage";
 import { LoginPage } from "../app/admin/LoginPage";
+import type { AdminFeedback } from "../components/admin/AdminStatusBanner";
+import { AdminShell } from "../components/layout/AdminShell";
 import type { CategoryFormValues } from "../components/admin/CategoryForm";
 import type { WebsiteFormValues } from "../components/admin/WebsiteForm";
 import { fetchJson, FetchJsonError } from "../lib/fetcher";
@@ -78,23 +80,23 @@ export function AdminRoute() {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [status, setStatus] = useState<"loading" | "unauthenticated" | "ready">("loading");
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [globalMessage, setGlobalMessage] = useState<string | null>(null);
-  const [publishMessage, setPublishMessage] = useState<string | null>(null);
+  const [globalFeedback, setGlobalFeedback] = useState<AdminFeedback | null>(null);
+  const [publishFeedback, setPublishFeedback] = useState<AdminFeedback | null>(null);
   const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const forceRelogin = useCallback((message: string | null) => {
     setCategories([]);
     setWebsites([]);
-    setGlobalMessage(null);
-    setPublishMessage(null);
+    setGlobalFeedback(null);
+    setPublishFeedback(null);
     setLoginError(message);
     setStatus("unauthenticated");
   }, []);
 
   const loadAdminData = useCallback(async () => {
     setStatus("loading");
-    setGlobalMessage(null);
+    setGlobalFeedback(null);
 
     try {
       const nextCategories = await fetchJson<Category[]>("/api/admin/categories");
@@ -111,7 +113,7 @@ export function AdminRoute() {
       }
 
       setStatus("ready");
-      setGlobalMessage(message);
+      setGlobalFeedback({ tone: "error", text: message });
     }
   }, [forceRelogin]);
 
@@ -125,17 +127,18 @@ export function AdminRoute() {
     successMessage?: string;
     onSuccess?: (value: T) => void;
     rethrow?: boolean;
-    setFeedback?: (message: string | null) => void;
+    setFeedback?: (feedback: AdminFeedback | null) => void;
   }): Promise<T | undefined> {
     try {
       const result = await options.action();
       options.onSuccess?.(result);
 
       if (options.successMessage) {
+        const feedback = { tone: "success" as const, text: options.successMessage };
         if (options.setFeedback) {
-          options.setFeedback(options.successMessage);
+          options.setFeedback(feedback);
         } else {
-          setGlobalMessage(options.successMessage);
+          setGlobalFeedback(feedback);
         }
       }
 
@@ -152,10 +155,11 @@ export function AdminRoute() {
         throw new Error(message);
       }
 
+      const feedback = { tone: "error" as const, text: message };
       if (options.setFeedback) {
-        options.setFeedback(message);
+        options.setFeedback(feedback);
       } else {
-        setGlobalMessage(message);
+        setGlobalFeedback(feedback);
       }
 
       return undefined;
@@ -181,10 +185,11 @@ export function AdminRoute() {
 
   async function handleCreateCategory(values: CategoryFormValues) {
     await runMutation({
-      action: () => fetchJson<Category>("/api/admin/categories", {
-        method: "POST",
-        body: JSON.stringify(values),
-      }),
+      action: () =>
+        fetchJson<Category>("/api/admin/categories", {
+          method: "POST",
+          body: JSON.stringify(values),
+        }),
       fallbackMessage: "Unable to save the category.",
       successMessage: `Saved category ${values.name}.`,
       onSuccess: (created) => {
@@ -196,10 +201,11 @@ export function AdminRoute() {
 
   async function handleUpdateCategory(categoryId: string, values: CategoryFormValues) {
     await runMutation({
-      action: () => fetchJson<Category>(`/api/admin/categories/${categoryId}`, {
-        method: "PUT",
-        body: JSON.stringify(values),
-      }),
+      action: () =>
+        fetchJson<Category>(`/api/admin/categories/${categoryId}`, {
+          method: "PUT",
+          body: JSON.stringify(values),
+        }),
       fallbackMessage: "Unable to update the category.",
       successMessage: `Updated category ${values.name}.`,
       onSuccess: (updated) => {
@@ -222,16 +228,17 @@ export function AdminRoute() {
 
   async function handleToggleCategoryVisibility(category: Category) {
     await runMutation({
-      action: () => fetchJson<Category>(`/api/admin/categories/${category.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          name: category.name,
-          slug: category.slug,
-          iconKey: category.iconKey,
-          sortOrder: category.sortOrder,
-          isVisible: !category.isVisible,
+      action: () =>
+        fetchJson<Category>(`/api/admin/categories/${category.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: category.name,
+            slug: category.slug,
+            iconKey: category.iconKey,
+            sortOrder: category.sortOrder,
+            isVisible: !category.isVisible,
+          }),
         }),
-      }),
       fallbackMessage: "Unable to update the category visibility.",
       successMessage: `Updated category ${category.name}.`,
       onSuccess: (updated) => {
@@ -242,10 +249,11 @@ export function AdminRoute() {
 
   async function handleCreateWebsite(values: WebsiteFormValues) {
     await runMutation({
-      action: () => fetchJson<Website>("/api/admin/websites", {
-        method: "POST",
-        body: JSON.stringify(values),
-      }),
+      action: () =>
+        fetchJson<Website>("/api/admin/websites", {
+          method: "POST",
+          body: JSON.stringify(values),
+        }),
       fallbackMessage: "Unable to save the website.",
       successMessage: `Saved website ${values.title}.`,
       onSuccess: (created) => {
@@ -257,10 +265,11 @@ export function AdminRoute() {
 
   async function handleUpdateWebsite(websiteId: string, values: WebsiteFormValues) {
     await runMutation({
-      action: () => fetchJson<Website>(`/api/admin/websites/${websiteId}`, {
-        method: "PUT",
-        body: JSON.stringify(values),
-      }),
+      action: () =>
+        fetchJson<Website>(`/api/admin/websites/${websiteId}`, {
+          method: "PUT",
+          body: JSON.stringify(values),
+        }),
       fallbackMessage: "Unable to update the website.",
       successMessage: `Updated website ${values.title}.`,
       onSuccess: (updated) => {
@@ -283,16 +292,17 @@ export function AdminRoute() {
 
   async function handleToggleWebsiteVisibility(website: Website) {
     await runMutation({
-      action: () => fetchJson<Website>(`/api/admin/websites/${website.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          title: website.title,
-          url: website.url,
-          categoryId: website.categoryId,
-          sortOrder: website.sortOrder,
-          isVisible: !website.isVisible,
+      action: () =>
+        fetchJson<Website>(`/api/admin/websites/${website.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            title: website.title,
+            url: website.url,
+            categoryId: website.categoryId,
+            sortOrder: website.sortOrder,
+            isVisible: !website.isVisible,
+          }),
         }),
-      }),
       fallbackMessage: "Unable to update the website visibility.",
       successMessage: `Updated website ${website.title}.`,
       onSuccess: (updated) => {
@@ -302,49 +312,63 @@ export function AdminRoute() {
   }
 
   async function handlePublish() {
+    setPublishFeedback(null);
+
     await runMutation({
       action: () => fetchJson<PublishResponse>("/api/admin/publish", { method: "POST" }),
       fallbackMessage: "Unable to publish the current snapshot.",
       onSuccess: (result) => {
         setLastPublishedAt(result.publishedAt);
-        setPublishMessage(`Published ${result.categoryCount} categories and ${result.websiteCount} websites.`);
-        setGlobalMessage("The public snapshot has been updated.");
+        setPublishFeedback({
+          tone: "success",
+          text: `Published ${result.categoryCount} categories and ${result.websiteCount} websites.`,
+        });
+        setGlobalFeedback({
+          tone: "success",
+          text: "The public snapshot has been updated.",
+        });
       },
-      setFeedback: setPublishMessage,
+      setFeedback: setPublishFeedback,
     });
   }
 
   if (status === "loading") {
     return (
-      <main className="admin-auth-shell">
+      <AdminShell centered>
         <section className="admin-auth-card">
           <h1>Loading admin workspace...</h1>
           <p>Checking the current admin session.</p>
         </section>
-      </main>
+      </AdminShell>
     );
   }
 
   if (status === "unauthenticated") {
-    return <LoginPage errorMessage={loginError} isSubmitting={isLoggingIn} onLogin={handleLogin} />;
+    return (
+      <AdminShell centered>
+        <LoginPage errorMessage={loginError} isSubmitting={isLoggingIn} onLogin={handleLogin} />
+      </AdminShell>
+    );
   }
 
   return (
-    <AdminPage
-      categories={categories}
-      websites={websites}
-      publishMessage={publishMessage}
-      lastPublishedAt={lastPublishedAt}
-      globalMessage={globalMessage}
-      onCreateCategory={handleCreateCategory}
-      onUpdateCategory={handleUpdateCategory}
-      onDeleteCategory={handleDeleteCategory}
-      onToggleCategoryVisibility={handleToggleCategoryVisibility}
-      onCreateWebsite={handleCreateWebsite}
-      onUpdateWebsite={handleUpdateWebsite}
-      onDeleteWebsite={handleDeleteWebsite}
-      onToggleWebsiteVisibility={handleToggleWebsiteVisibility}
-      onPublish={handlePublish}
-    />
+    <AdminShell>
+      <AdminPage
+        categories={categories}
+        websites={websites}
+        publishFeedback={publishFeedback}
+        lastPublishedAt={lastPublishedAt}
+        globalFeedback={globalFeedback}
+        onCreateCategory={handleCreateCategory}
+        onUpdateCategory={handleUpdateCategory}
+        onDeleteCategory={handleDeleteCategory}
+        onToggleCategoryVisibility={handleToggleCategoryVisibility}
+        onCreateWebsite={handleCreateWebsite}
+        onUpdateWebsite={handleUpdateWebsite}
+        onDeleteWebsite={handleDeleteWebsite}
+        onToggleWebsiteVisibility={handleToggleWebsiteVisibility}
+        onPublish={handlePublish}
+      />
+    </AdminShell>
   );
 }
