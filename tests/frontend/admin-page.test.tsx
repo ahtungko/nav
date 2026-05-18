@@ -62,7 +62,7 @@ function renderAdminRoute() {
 }
 
 describe("AdminRoute", () => {
-  it("shows login first, then renders the admin tabs and website rows in category-order after a successful login", async () => {
+  it("shows login first, then renders the command center and selection-aware editors after a successful login", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
@@ -96,27 +96,34 @@ describe("AdminRoute", () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "secret" } });
     fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
-    expect(await screen.findByRole("button", { name: /^Overview$/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Categories$/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Websites$/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Publish$/i })).toBeInTheDocument();
-    expect(screen.getByText(/draft health/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /draft command center/i })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /theme mode/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Overview$/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Categories$/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Websites$/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Publish$/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /^Categories$/i }));
-    expect(await screen.findByRole("button", { name: /create category/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /^Categories$/i }));
+    expect(await screen.findByRole("heading", { name: /^Create category$/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /^Websites$/i }));
-    expect(await screen.findByRole("button", { name: /create website/i })).toBeInTheDocument();
+    const categoryEditButtons = await screen.findAllByRole("button", { name: /^Edit$/i });
+    fireEvent.click(categoryEditButtons[0]!);
 
-    const dataRows = screen
-      .getAllByRole("row")
-      .slice(1)
-      .filter((row) => within(row).queryAllByRole("cell").length > 0);
-    const orderedTitles = dataRows.map((row) => within(row).getAllByRole("cell")[0]!.textContent);
-    expect(orderedTitles).toEqual(["Alpha Site", "Beta Site"]);
+    expect(screen.getByRole("heading", { name: /editing alpha category/i })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Alpha Category")).toBeInTheDocument();
+    expect(screen.getByText("Alpha Category").closest("tr")).toHaveAttribute("aria-selected", "true");
 
-    fireEvent.click(screen.getByRole("button", { name: /^Publish$/i }));
-    expect(await screen.findByRole("button", { name: /publish snapshot/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /^Websites$/i }));
+    expect(await screen.findByRole("heading", { name: /^Create website$/i })).toBeInTheDocument();
+
+    const websiteEditButtons = await screen.findAllByRole("button", { name: /^Edit$/i });
+    fireEvent.click(websiteEditButtons[0]!);
+
+    expect(screen.getByRole("heading", { name: /editing alpha site/i })).toBeInTheDocument();
+    expect(screen.getByDisplayValue("https://alpha.example.com")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: /^Publish$/i }));
+    expect(await screen.findByRole("heading", { name: /release draft snapshot/i })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -196,15 +203,15 @@ describe("AdminRoute", () => {
 
     renderAdminRoute();
 
-    expect(await screen.findByRole("button", { name: /^Categories$/i })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: /^Categories$/i })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /^Categories$/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /^Categories$/i }));
     const deleteButtons = await screen.findAllByRole("button", { name: /^Delete$/i });
     fireEvent.click(deleteButtons[0]!);
 
     expect(await screen.findByText(/move or remove its websites first/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /^Overview$/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /^Overview$/i }));
     fireEvent.click(await screen.findByRole("button", { name: /publish snapshot/i }));
 
     expect(await screen.findByLabelText(/password/i)).toBeInTheDocument();
