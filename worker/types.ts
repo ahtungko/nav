@@ -21,6 +21,7 @@ export type WebsiteRow = {
   id: string;
   title: string;
   url: string;
+  favicon_url: string | null;
   category_id: string;
   sort_order: number;
   is_visible: number;
@@ -43,6 +44,7 @@ export type WebsiteInput = {
   id: string;
   title: string;
   url: string;
+  favicon_url: string | null;
   category_id: string;
   sort_order: number;
   is_visible: number;

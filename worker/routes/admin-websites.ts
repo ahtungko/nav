@@ -13,6 +13,7 @@ function toWebsite(row: WebsiteRow): Website {
     id: row.id,
     title: row.title,
     url: row.url,
+    faviconUrl: row.favicon_url,
     categoryId: row.category_id,
     sortOrder: row.sort_order,
     isVisible: row.is_visible === 1,
@@ -58,6 +59,7 @@ export async function handleAdminWebsitesRequest(
         id,
         title: parsed.data.title,
         url: parsed.data.url,
+        favicon_url: parsed.data.faviconUrl ?? null,
         category_id: parsed.data.categoryId,
         sort_order: parsed.data.sortOrder,
         is_visible: parsed.data.isVisible ? 1 : 0,
@@ -101,6 +103,7 @@ export async function handleAdminWebsitesRequest(
       await repository.update(websiteId, {
         title: parsed.data.title,
         url: parsed.data.url,
+        favicon_url: parsed.data.faviconUrl ?? null,
         category_id: parsed.data.categoryId,
         sort_order: parsed.data.sortOrder,
         is_visible: parsed.data.isVisible ? 1 : 0,

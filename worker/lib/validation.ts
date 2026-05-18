@@ -7,6 +7,15 @@ const safeWebsiteUrlSchema = z.string().url().refine((value) => {
   return protocol === "http:" || protocol === "https:";
 }, "Expected an http or https url");
 
+const optionalSafeWebsiteUrlSchema = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}, safeWebsiteUrlSchema.nullable().optional());
+
 export const categoryInputSchema = z.object({
   name: nonBlankString,
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
@@ -18,6 +27,7 @@ export const categoryInputSchema = z.object({
 export const websiteInputSchema = z.object({
   title: nonBlankString,
   url: safeWebsiteUrlSchema,
+  faviconUrl: optionalSafeWebsiteUrlSchema,
   categoryId: z.string().min(1),
   sortOrder: z.number().int(),
   isVisible: z.boolean(),
