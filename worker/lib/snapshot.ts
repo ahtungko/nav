@@ -37,6 +37,7 @@ export function buildPublishedSnapshot(input: {
         id: website.id,
         title: website.title,
         url: website.url,
+        faviconUrl: website.favicon_url,
         categoryId: website.category_id,
         sortOrder: website.sort_order,
         createdAt: website.created_at,

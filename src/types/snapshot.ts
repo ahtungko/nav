@@ -12,6 +12,7 @@ const publishedWebsiteSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   url: z.string().min(1),
+  faviconUrl: z.string().min(1).nullable().optional(),
   categoryId: z.string().min(1),
   sortOrder: z.number(),
   createdAt: z.string().min(1),
