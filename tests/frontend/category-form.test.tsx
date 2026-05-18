@@ -25,4 +25,22 @@ describe("CategoryForm", () => {
       );
     });
   });
+
+  it("supports arrow-key navigation across category icon radio options", () => {
+    render(<CategoryForm onSubmit={vi.fn()} />);
+
+    const aiOption = screen.getByRole("radio", { name: /^ai$/i });
+    const websiteOption = screen.getByRole("radio", { name: /^website$/i });
+
+    expect(aiOption).toHaveAttribute("tabindex", "0");
+    expect(websiteOption).toHaveAttribute("tabindex", "-1");
+
+    aiOption.focus();
+    fireEvent.keyDown(aiOption, { key: "ArrowRight" });
+
+    expect(websiteOption).toHaveAttribute("aria-checked", "true");
+    expect(websiteOption).toHaveFocus();
+    expect(websiteOption).toHaveAttribute("tabindex", "0");
+    expect(aiOption).toHaveAttribute("tabindex", "-1");
+  });
 });

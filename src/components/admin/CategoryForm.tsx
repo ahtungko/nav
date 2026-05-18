@@ -1,4 +1,10 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import {
+  CATEGORY_ICON_OPTIONS,
+  getCategoryIconClassName,
+  getCategoryIconOption,
+  renderCategoryIcon,
+} from "../../lib/category-icons";
 
 export type CategoryFormValues = {
   name: string;
@@ -8,10 +14,16 @@ export type CategoryFormValues = {
   isVisible: boolean;
 };
 
+const DEFAULT_CATEGORY_ICON_KEY = CATEGORY_ICON_OPTIONS[0]!.key;
+
+function normalizeIconKey(iconKey: string | null | undefined) {
+  return CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey)?.key ?? DEFAULT_CATEGORY_ICON_KEY;
+}
+
 const emptyValues: CategoryFormValues = {
   name: "",
   slug: "",
-  iconKey: "",
+  iconKey: DEFAULT_CATEGORY_ICON_KEY,
   sortOrder: 0,
   isVisible: true,
 };
@@ -24,13 +36,25 @@ type CategoryFormProps = {
   submitLabel?: string;
 };
 
+function createFormValues(initialValues?: CategoryFormValues | null): CategoryFormValues {
+  if (!initialValues) {
+    return emptyValues;
+  }
+
+  return {
+    ...initialValues,
+    iconKey: normalizeIconKey(initialValues.iconKey),
+  };
+}
+
 export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
-  const [values, setValues] = useState<CategoryFormValues>(initialValues ?? emptyValues);
+  const [values, setValues] = useState<CategoryFormValues>(() => createFormValues(initialValues));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const iconOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
-    setValues(initialValues ?? emptyValues);
+    setValues(createFormValues(initialValues));
     setErrorMessage(null);
   }, [initialValues]);
 
@@ -40,7 +64,10 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
     setIsSubmitting(true);
 
     try {
-      await onSubmit(values);
+      await onSubmit({
+        ...values,
+        iconKey: normalizeIconKey(values.iconKey),
+      });
       if (!initialValues) {
         setValues(emptyValues);
       }
@@ -50,6 +77,63 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
       setIsSubmitting(false);
     }
   }
+
+  function selectIcon(iconKey: string) {
+    setValues((current) => ({ ...current, iconKey }));
+  }
+
+  function focusIcon(iconKey: string) {
+    iconOptionRefs.current[iconKey]?.focus();
+  }
+
+  function moveSelection(nextIndex: number) {
+    const normalizedIndex = (nextIndex + CATEGORY_ICON_OPTIONS.length) % CATEGORY_ICON_OPTIONS.length;
+    const nextOption = CATEGORY_ICON_OPTIONS[normalizedIndex];
+
+    if (!nextOption) {
+      return;
+    }
+
+    selectIcon(nextOption.key);
+    focusIcon(nextOption.key);
+  }
+
+  function handleIconKeyDown(event: KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowDown": {
+        event.preventDefault();
+        moveSelection(currentIndex + 1);
+        break;
+      }
+      case "ArrowLeft":
+      case "ArrowUp": {
+        event.preventDefault();
+        moveSelection(currentIndex - 1);
+        break;
+      }
+      case "Home": {
+        event.preventDefault();
+        moveSelection(0);
+        break;
+      }
+      case "End": {
+        event.preventDefault();
+        moveSelection(CATEGORY_ICON_OPTIONS.length - 1);
+        break;
+      }
+      case " ":
+      case "Enter": {
+        event.preventDefault();
+        selectIcon(CATEGORY_ICON_OPTIONS[currentIndex]!.key);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  const selectedIcon = getCategoryIconOption(values.iconKey);
 
   return (
     <form className="admin-form admin-panel admin-editor-card" onSubmit={handleSubmit}>
@@ -84,15 +168,47 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
         />
       </label>
 
-      <label className="admin-field">
-        <span>Icon key</span>
-        <input
-          value={values.iconKey}
-          onChange={(event) => setValues((current) => ({ ...current, iconKey: event.target.value }))}
-          placeholder="sparkles"
-          required
-        />
-      </label>
+      <fieldset className="admin-field admin-icon-picker-fieldset">
+        <legend id="category-icon-label">Category icon</legend>
+        <input type="hidden" name="iconKey" value={values.iconKey} />
+        <div className="admin-icon-preview" aria-live="polite">
+          <span className={`category-card__icon ${getCategoryIconClassName(selectedIcon.key)}`}>{renderCategoryIcon(selectedIcon.key)}</span>
+          <div>
+            <strong>{selectedIcon.label}</strong>
+            <p>Selected icon key: {selectedIcon.key}</p>
+          </div>
+        </div>
+        <div className="admin-icon-picker" role="radiogroup" aria-labelledby="category-icon-label">
+          {CATEGORY_ICON_OPTIONS.map((option, index) => {
+            const isSelected = values.iconKey === option.key;
+            const optionLabelId = `category-icon-option-${option.key}`;
+
+            return (
+              <button
+                key={option.key}
+                ref={(element) => {
+                  iconOptionRefs.current[option.key] = element;
+                }}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                aria-labelledby={optionLabelId}
+                tabIndex={isSelected ? 0 : -1}
+                className={`admin-icon-option${isSelected ? " is-selected" : ""}`}
+                onClick={() => selectIcon(option.key)}
+                onKeyDown={(event) => handleIconKeyDown(event, index)}
+              >
+                <span className={`admin-icon-option__glyph category-card__icon ${getCategoryIconClassName(option.key)}`}>
+                  {renderCategoryIcon(option.key)}
+                </span>
+                <span id={optionLabelId} className="admin-icon-option__label">
+                  {option.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <label className="admin-field">
         <span>Sort order</span>
@@ -128,3 +244,5 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
     </form>
   );
 }
+
+

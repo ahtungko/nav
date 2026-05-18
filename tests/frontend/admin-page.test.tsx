@@ -107,7 +107,7 @@ describe("AdminRoute", () => {
     expect(await screen.findByRole("heading", { name: /^Create category$/i })).toBeInTheDocument();
     expect(screen.getByRole("radiogroup", { name: /category icon/i })).toBeInTheDocument();
     expect(screen.queryByLabelText(/icon key/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /ai/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /^ai$/i })).toBeInTheDocument();
 
     const categoryEditButtons = await screen.findAllByRole("button", { name: /^Edit$/i });
     fireEvent.click(categoryEditButtons[0]!);
@@ -222,4 +222,5 @@ describe("AdminRoute", () => {
     expect(publishCalled).toBe(true);
   });
 });
+
 

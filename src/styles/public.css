@@ -551,6 +551,18 @@
   color: #c3a14e;
 }
 
+.category-card__icon--resources {
+  color: #6fb7c8;
+}
+
+.category-card__icon--entertainment {
+  color: #ff9d66;
+}
+
+.category-card__icon--fallback {
+  color: var(--color-brand);
+}
+
 .category-card h3 {
   margin: 0;
   min-width: 0;
@@ -912,3 +924,4 @@
     flex-wrap: wrap;
   }
 }
+
