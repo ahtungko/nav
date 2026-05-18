@@ -92,8 +92,6 @@ export function CategoriesRail({ categories, categoryCountById, activeCategoryId
         </span>
         <span>Popular Categories</span>
       </div>
-      <p className="section-caption">Drag horizontally or tap a card to focus the lists below.</p>
-
       <div
         ref={railRef}
         className={`categories-rail${isDragging ? " is-dragging" : ""}`}

@@ -3,9 +3,9 @@ import { useStore } from "zustand";
 import { AppShell } from "../../components/layout/AppShell";
 import { CategoriesRail } from "../../components/public/CategoriesRail";
 import { PinnedPanel } from "../../components/public/PinnedPanel";
+import { PublicThemeButton } from "../../components/public/PublicThemeButton";
 import { RecentPanel } from "../../components/public/RecentPanel";
 import { SearchBar } from "../../components/public/SearchBar";
-import { ThemeToggle } from "../../components/public/ThemeToggle";
 import { createPinnedStore } from "../../features/pinned/pinned-store";
 import { searchWebsites } from "../../features/search/search-websites";
 import type { PublishedSnapshot } from "../../types/snapshot";
@@ -70,35 +70,10 @@ export function HomePage({ snapshot }: HomePageProps) {
       topBarTools={
         <>
           <SearchBar value={query} onChange={setQuery} placeholder="Search..." label="Quick search" />
-          <ThemeToggle />
+          <PublicThemeButton />
         </>
       }
     >
-      <section className="hero-panel">
-        <div className="hero-panel__content">
-          <span className="hero-panel__eyebrow">Published Snapshot v{snapshot.version}</span>
-          <h1>Discover curated websites with a calm, fixed-view dashboard.</h1>
-          <p>
-            Search locally, filter by category, pin your favorites, and scan the most recently published websites without
-            leaving the page.
-          </p>
-        </div>
-        <div className="hero-panel__stats" aria-label="Snapshot summary">
-          <div>
-            <strong>{snapshot.categories.length}</strong>
-            <span>categories</span>
-          </div>
-          <div>
-            <strong>{visibleWebsites.length}</strong>
-            <span>visible websites</span>
-          </div>
-          <div>
-            <strong>{pinnedWebsites.length}</strong>
-            <span>pinned</span>
-          </div>
-        </div>
-      </section>
-
       <CategoriesRail
         categories={sortedCategories}
         categoryCountById={categoryCounts}

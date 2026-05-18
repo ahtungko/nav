@@ -58,16 +58,117 @@
     radial-gradient(ellipse at 55% 60%, rgba(167, 142, 255, 0.12), transparent 45%);
 }
 
-.app-shell__glow--b {
-  width: min(900px, 92vw);
-  height: 160px;
+.app-shell__mist {
+  position: absolute;
+  inset: auto 0 180px 0;
+  height: 260px;
+  background:
+    radial-gradient(ellipse at 20% 45%, rgba(245, 163, 205, 0.14), transparent 40%),
+    radial-gradient(ellipse at 55% 60%, rgba(167, 142, 255, 0.12), transparent 45%),
+    radial-gradient(ellipse at 80% 30%, rgba(247, 144, 188, 0.13), transparent 38%);
+  filter: blur(36px);
+  opacity: 0.95;
+}
+
+.app-shell__horizon,
+.app-shell__water,
+.app-shell__reflection {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.app-shell__horizon {
+  bottom: 148px;
+  height: 190px;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(13, 16, 28, 0.24) 22%, rgba(11, 11, 18, 0.94) 100%),
+    radial-gradient(ellipse at 20% 74%, rgba(46, 52, 86, 0.8), transparent 38%),
+    radial-gradient(ellipse at 50% 78%, rgba(35, 38, 74, 0.92), transparent 42%),
+    radial-gradient(ellipse at 78% 72%, rgba(44, 38, 78, 0.9), transparent 34%);
+  opacity: 0.95;
+}
+
+.app-shell__water {
+  bottom: -40px;
+  height: 250px;
+  background:
+    linear-gradient(180deg, rgba(20, 18, 36, 0.06), rgba(6, 6, 12, 0.94)),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 2px, transparent 2px 14px),
+    radial-gradient(ellipse at 50% 0%, rgba(247, 139, 189, 0.14), transparent 46%);
+  opacity: 0.84;
+}
+
+.app-shell__reflection {
+  bottom: 52px;
   left: 50%;
-  bottom: 38px;
+  width: min(920px, 92vw);
+  height: 160px;
   transform: translateX(-50%);
   background:
     radial-gradient(ellipse at center, rgba(255, 142, 190, 0.16), transparent 56%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 76%);
-  filter: blur(18px);
+  filter: blur(16px);
+  opacity: 0.9;
+}
+
+.app-shell__floating-light {
+  position: absolute;
+  width: 8px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 234, 190, 0.95), rgba(255, 143, 186, 0.28) 60%, transparent 72%);
+  filter: blur(0.4px);
+  animation: flicker 4.2s ease-in-out infinite;
+  opacity: 0.75;
+}
+
+.app-shell__floating-light--a {
+  left: 13%;
+  top: 78%;
+  animation-delay: 0.2s;
+}
+
+.app-shell__floating-light--b {
+  left: 44%;
+  top: 76%;
+  animation-delay: 0.8s;
+}
+
+.app-shell__floating-light--c {
+  left: 62%;
+  top: 82%;
+  animation-delay: 2.1s;
+}
+
+.app-shell__floating-light--d {
+  left: 84%;
+  top: 88%;
+  animation-delay: 1.9s;
+}
+
+.petals-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.petal {
+  --drift: 0px;
+  --scale: 1;
+  position: absolute;
+  top: -10%;
+  border-radius: 70% 0 70% 0;
+  background: linear-gradient(135deg, rgba(255, 220, 234, 0.96), rgba(255, 152, 194, 0.82));
+  box-shadow:
+    0 0 10px rgba(255, 178, 209, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transform: rotate(24deg);
+  animation-name: petal-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
 
 .app-shell__frame {
@@ -95,6 +196,13 @@
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 18px;
+}
+
+.top-bar__nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-left: auto;
 }
 
 .brand-mark {
@@ -129,11 +237,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: auto;
 }
 
 .search-bar,
 .theme-toggle,
+.public-theme-button,
 .hero-panel,
 .panel,
 .category-card {
@@ -185,6 +293,31 @@
   border-radius: 999px;
 }
 
+.public-theme-button {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.public-theme-button svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .theme-toggle__option {
   min-width: 58px;
   height: 34px;
@@ -207,6 +340,8 @@
 
 .theme-toggle__option:hover,
 .theme-toggle__option:focus-visible,
+.public-theme-button:hover,
+.public-theme-button:focus-visible,
 .category-card:hover,
 .category-card:focus-visible,
 .pin-toggle:hover,
@@ -290,7 +425,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--color-heading);
@@ -298,12 +433,6 @@
 
 .panel-title__icon {
   color: var(--color-brand);
-}
-
-.section-caption {
-  margin: 0 0 10px;
-  color: var(--color-muted);
-  font-size: 0.95rem;
 }
 
 .categories-rail {
@@ -655,12 +784,64 @@
 }
 
 .footer {
-  margin-top: 12px;
+  margin-top: 16px;
   display: grid;
   place-items: center;
   gap: 8px;
   color: var(--color-muted);
   font-size: 0.94rem;
+}
+
+.footer__socials {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer__socials a {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: var(--blur-strong);
+  -webkit-backdrop-filter: var(--blur-strong);
+}
+
+.footer__socials svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  stroke: none;
+}
+
+.footer__socials a[aria-label="Email"] svg path:last-child {
+  fill: none;
+  stroke: currentColor;
+}
+
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -12vh, 0) rotate(0deg) scale(var(--scale));
+  }
+
+  100% {
+    transform: translate3d(var(--drift), 112vh, 0) rotate(320deg) scale(var(--scale));
+  }
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.48;
+  }
+
+  50% {
+    opacity: 0.88;
+  }
 }
 
 @media (max-width: 1080px) {
@@ -688,9 +869,13 @@
     align-items: stretch;
   }
 
+  .top-bar__nav {
+    width: 100%;
+  }
+
   .top-bar__tools {
     width: 100%;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: stretch;
   }
 
@@ -701,6 +886,10 @@
 
   .theme-toggle {
     justify-content: center;
+  }
+
+  .public-theme-button {
+    flex: 0 0 auto;
   }
 
   .hero-panel {

@@ -48,6 +48,9 @@ describe("HomePage", () => {
     expect(screen.getByText("Popular Categories")).toBeInTheDocument();
     expect(screen.getByText("Pinned")).toBeInTheDocument();
     expect(screen.getByText("Recently Added")).toBeInTheDocument();
+    expect(screen.queryByText(/Published Snapshot v1/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Discover curated websites with a calm, fixed-view dashboard/i)).not.toBeInTheDocument();
+    expect(document.querySelectorAll(".petal").length).toBeGreaterThan(0);
   });
 
   it("filters recent websites with the local search input", () => {

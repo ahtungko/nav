@@ -38,7 +38,7 @@ export function PinnedPanel({ websites, categoryNamesById, pinnedIds, onTogglePi
                 📍
               </div>
               <h3>No pinned websites yet</h3>
-              <p>Pin favorite entries from the recent list to keep them within quick reach.</p>
+              <p>When pinning is enabled, your selected websites will appear here for quick access.</p>
             </div>
           </div>
         )}

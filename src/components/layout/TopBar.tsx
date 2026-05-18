@@ -14,7 +14,11 @@ export function TopBar({ tools }: TopBarProps) {
         <span className="brand-mark__text">vyxolabs</span>
       </a>
 
-      {tools ? <div className="top-bar__tools">{tools}</div> : null}
+      {tools ? (
+        <div className="top-bar__nav">
+          <div className="top-bar__tools">{tools}</div>
+        </div>
+      ) : null}
     </header>
   );
 }

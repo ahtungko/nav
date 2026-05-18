@@ -54,7 +54,7 @@ function renderCategoryIcon(iconKey: string) {
 }
 
 function formatCount(count: number) {
-  return `${count} ${count === 1 ? "site" : "sites"}`;
+  return `${count} items`;
 }
 
 export function CategoryCard({ name, iconKey, count, active, onClick }: CategoryCardProps) {
