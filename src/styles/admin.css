@@ -309,6 +309,24 @@
   outline-offset: 2px;
 }
 
+:root[data-theme="night"] .admin-field select {
+  color-scheme: dark;
+}
+
+:root[data-theme="night"] .admin-field select option {
+  background-color: #12162a;
+  color: #f5f3ff;
+}
+
+:root:not([data-theme="night"]) .admin-field select {
+  color-scheme: light;
+}
+
+:root:not([data-theme="night"]) .admin-field select option {
+  background-color: #ffffff;
+  color: #35394b;
+}
+
 .admin-icon-picker-fieldset {
   border: 0;
   padding: 0;
