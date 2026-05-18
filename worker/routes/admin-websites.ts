@@ -8,6 +8,10 @@ function slugify(value: string): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "website";
 }
 
+function hasOwn(body: unknown, key: string): boolean {
+  return typeof body === "object" && body !== null && Object.hasOwn(body, key);
+}
+
 function toWebsite(row: WebsiteRow): Website {
   return {
     id: row.id,
@@ -99,11 +103,13 @@ export async function handleAdminWebsitesRequest(
       return jsonError("invalid_request", 400);
     }
 
+    const faviconUrl = hasOwn(body, "faviconUrl") ? (parsed.data.faviconUrl ?? null) : current.favicon_url;
+
     try {
       await repository.update(websiteId, {
         title: parsed.data.title,
         url: parsed.data.url,
-        favicon_url: parsed.data.faviconUrl ?? null,
+        favicon_url: faviconUrl,
         category_id: parsed.data.categoryId,
         sort_order: parsed.data.sortOrder,
         is_visible: parsed.data.isVisible ? 1 : 0,
