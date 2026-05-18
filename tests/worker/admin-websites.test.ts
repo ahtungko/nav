@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { env, SELF } from "cloudflare:test";
 
 type CreatedCategory = { id: string };
-type CreatedWebsite = { id: string; title: string };
+type CreatedWebsite = { id: string; title: string; faviconUrl?: string | null };
 
 async function loginAsAdmin(): Promise<string> {
   const response = await SELF.fetch("https://example.com/api/auth/login", {
@@ -30,6 +30,15 @@ async function createCategory(cookie: string): Promise<CreatedCategory> {
 
   expect(response.status).toBe(201);
   return (await response.json()) as CreatedCategory;
+}
+
+async function listWebsites(cookie: string): Promise<CreatedWebsite[]> {
+  const response = await SELF.fetch("https://example.com/api/admin/websites", {
+    headers: { cookie },
+  });
+
+  expect(response.status).toBe(200);
+  return (await response.json()) as CreatedWebsite[];
 }
 
 describe("POST /api/admin/websites", () => {
@@ -90,12 +99,7 @@ describe("POST /api/admin/websites", () => {
       )
       .run();
 
-    const response = await SELF.fetch("https://example.com/api/admin/websites", {
-      headers: { cookie },
-    });
-
-    expect(response.status).toBe(200);
-    const payload = (await response.json()) as CreatedWebsite[];
+    const payload = await listWebsites(cookie);
     expect(payload.map((website) => website.title)).toEqual(["Alpha Site", "Beta Site"]);
   });
 
@@ -155,6 +159,146 @@ describe("POST /api/admin/websites", () => {
         cookie,
       },
       body: JSON.stringify({ title: "ChatGPT", url: "data:text/html,boom", categoryId: category.id, sortOrder: 1, isVisible: true }),
+    });
+
+    expect(updateResponse.status).toBe(400);
+    expect(await updateResponse.json()).toEqual({ error: "invalid_request" });
+  });
+
+  it("persists a custom favicon url when creating a website", async () => {
+    const cookie = await loginAsAdmin();
+    const category = await createCategory(cookie);
+
+    const response = await SELF.fetch("https://example.com/api/admin/websites", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+      },
+      body: JSON.stringify({
+        title: "Gemini",
+        url: "https://gemini.google.com",
+        faviconUrl: "https://static.example.com/gemini.png",
+        categoryId: category.id,
+        sortOrder: 1,
+        isVisible: true,
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    const websites = await listWebsites(cookie);
+    expect(websites).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Gemini",
+          faviconUrl: "https://static.example.com/gemini.png",
+        }),
+      ]),
+    );
+  });
+
+  it("rejects unsafe favicon override urls", async () => {
+    const cookie = await loginAsAdmin();
+    const category = await createCategory(cookie);
+
+    const response = await SELF.fetch("https://example.com/api/admin/websites", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+      },
+      body: JSON.stringify({
+        title: "Gemini",
+        url: "https://gemini.google.com",
+        faviconUrl: "javascript:alert(1)",
+        categoryId: category.id,
+        sortOrder: 1,
+        isVisible: true,
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
+  it("persists a custom favicon url when updating a website", async () => {
+    const cookie = await loginAsAdmin();
+    const category = await createCategory(cookie);
+
+    const createResponse = await SELF.fetch("https://example.com/api/admin/websites", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+      },
+      body: JSON.stringify({ title: "Gemini", url: "https://gemini.google.com", categoryId: category.id, sortOrder: 1, isVisible: true }),
+    });
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as CreatedWebsite;
+
+    const updateResponse = await SELF.fetch(`https://example.com/api/admin/websites/${created.id}`, {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+      },
+      body: JSON.stringify({
+        title: "Gemini",
+        url: "https://gemini.google.com",
+        faviconUrl: "https://static.example.com/gemini.png",
+        categoryId: category.id,
+        sortOrder: 1,
+        isVisible: true,
+      }),
+    });
+
+    expect(updateResponse.status).toBe(200);
+    expect(await updateResponse.json()).toEqual(
+      expect.objectContaining({
+        faviconUrl: "https://static.example.com/gemini.png",
+      }),
+    );
+
+    const websites = await listWebsites(cookie);
+    expect(websites).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: created.id,
+          faviconUrl: "https://static.example.com/gemini.png",
+        }),
+      ]),
+    );
+  });
+
+  it("rejects unsafe favicon override urls on update", async () => {
+    const cookie = await loginAsAdmin();
+    const category = await createCategory(cookie);
+
+    const createResponse = await SELF.fetch("https://example.com/api/admin/websites", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+      },
+      body: JSON.stringify({ title: "Gemini", url: "https://gemini.google.com", categoryId: category.id, sortOrder: 1, isVisible: true }),
+    });
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as CreatedWebsite;
+
+    const updateResponse = await SELF.fetch(`https://example.com/api/admin/websites/${created.id}`, {
+      method: "PUT",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+      },
+      body: JSON.stringify({
+        title: "Gemini",
+        url: "https://gemini.google.com",
+        faviconUrl: "javascript:alert(1)",
+        categoryId: category.id,
+        sortOrder: 1,
+        isVisible: true,
+      }),
     });
 
     expect(updateResponse.status).toBe(400);

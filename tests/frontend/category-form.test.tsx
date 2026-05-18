@@ -43,4 +43,19 @@ describe("CategoryForm", () => {
     expect(websiteOption).toHaveAttribute("tabindex", "0");
     expect(aiOption).toHaveAttribute("tabindex", "-1");
   });
+
+  it("auto-generates the slug from name until the user edits the slug manually", () => {
+    render(<CategoryForm onSubmit={vi.fn()} />);
+
+    const nameInput = screen.getByLabelText(/^name$/i);
+    const slugInput = screen.getByLabelText(/^slug$/i);
+
+    fireEvent.change(nameInput, { target: { value: "AI Tools" } });
+    expect(slugInput).toHaveValue("ai-tools");
+
+    fireEvent.change(slugInput, { target: { value: "custom-slug" } });
+    fireEvent.change(nameInput, { target: { value: "AI Tools Updated" } });
+
+    expect(slugInput).toHaveValue("custom-slug");
+  });
 });
