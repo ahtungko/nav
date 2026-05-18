@@ -17,13 +17,14 @@ const emptyValues: CategoryFormValues = {
 };
 
 type CategoryFormProps = {
+  selectedName?: string | null;
   initialValues?: CategoryFormValues | null;
   onSubmit: (values: CategoryFormValues) => Promise<void> | void;
   onCancel?: () => void;
   submitLabel?: string;
 };
 
-export function CategoryForm({ initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
+export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
   const [values, setValues] = useState<CategoryFormValues>(initialValues ?? emptyValues);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,11 +52,15 @@ export function CategoryForm({ initialValues, onSubmit, onCancel, submitLabel = 
   }
 
   return (
-    <form className="admin-form admin-panel" onSubmit={handleSubmit}>
+    <form className="admin-form admin-panel admin-editor-card" onSubmit={handleSubmit}>
       <div className="admin-form__header">
         <div>
-          <h3>{initialValues ? "Edit category" : "New category"}</h3>
-          <p>Manage the category label, icon key, order, and visibility.</p>
+          <h3>{selectedName ? `Editing ${selectedName}` : "Create category"}</h3>
+          <p>
+            {selectedName
+              ? "Update naming, icon key, ordering, and visibility for the selected category."
+              : "Start a new category in the draft workspace."}
+          </p>
         </div>
       </div>
 
@@ -116,11 +121,10 @@ export function CategoryForm({ initialValues, onSubmit, onCancel, submitLabel = 
         </button>
         {onCancel ? (
           <button type="button" className="admin-button" onClick={onCancel}>
-            Cancel
+            Create new
           </button>
         ) : null}
       </div>
     </form>
   );
 }
-

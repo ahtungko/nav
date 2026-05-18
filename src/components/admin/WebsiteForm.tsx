@@ -19,6 +19,7 @@ const emptyValues: WebsiteFormValues = {
 
 type WebsiteFormProps = {
   categories: Category[];
+  selectedTitle?: string | null;
   initialValues?: WebsiteFormValues | null;
   onSubmit: (values: WebsiteFormValues) => Promise<void> | void;
   onCancel?: () => void;
@@ -27,6 +28,7 @@ type WebsiteFormProps = {
 
 export function WebsiteForm({
   categories,
+  selectedTitle,
   initialValues,
   onSubmit,
   onCancel,
@@ -67,11 +69,15 @@ export function WebsiteForm({
   }
 
   return (
-    <form className="admin-form admin-panel" onSubmit={handleSubmit}>
+    <form className="admin-form admin-panel admin-editor-card" onSubmit={handleSubmit}>
       <div className="admin-form__header">
         <div>
-          <h3>{initialValues ? "Edit website" : "New website"}</h3>
-          <p>Choose the category, order, link, and draft visibility.</p>
+          <h3>{selectedTitle ? `Editing ${selectedTitle}` : "Create website"}</h3>
+          <p>
+            {selectedTitle
+              ? "Update the selected website's category, link, ordering, and publish visibility."
+              : "Add a new website to the current draft workspace."}
+          </p>
         </div>
       </div>
 
@@ -138,11 +144,10 @@ export function WebsiteForm({
         </button>
         {onCancel ? (
           <button type="button" className="admin-button" onClick={onCancel}>
-            Cancel
+            Create new
           </button>
         ) : null}
       </div>
     </form>
   );
 }
-

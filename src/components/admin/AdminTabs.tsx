@@ -14,18 +14,19 @@ type AdminTabsProps = {
 
 export function AdminTabs({ activeTab, onChange }: AdminTabsProps) {
   return (
-    <nav className="admin-tabs" aria-label="Admin sections">
+    <div className="admin-tabs" role="tablist" aria-label="Admin sections">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
+          role="tab"
           className={`admin-tabs__button${tab.id === activeTab ? " is-active" : ""}`}
-          aria-pressed={tab.id === activeTab}
+          aria-selected={tab.id === activeTab}
           onClick={() => onChange(tab.id)}
         >
           {tab.label}
         </button>
       ))}
-    </nav>
+    </div>
   );
 }

@@ -2,13 +2,14 @@ import type { Website } from "../../types/website";
 
 type WebsitesTableProps = {
   websites: Website[];
+  selectedWebsiteId?: string | null;
   categoriesById: Record<string, string>;
   onEdit: (website: Website) => void;
   onDelete: (website: Website) => Promise<void> | void;
   onToggleVisible: (website: Website) => Promise<void> | void;
 };
 
-export function WebsitesTable({ websites, categoriesById, onEdit, onDelete, onToggleVisible }: WebsitesTableProps) {
+export function WebsitesTable({ websites, selectedWebsiteId, categoriesById, onEdit, onDelete, onToggleVisible }: WebsitesTableProps) {
   return (
     <section className="admin-panel">
       <div className="admin-panel__header">
@@ -34,7 +35,11 @@ export function WebsitesTable({ websites, categoriesById, onEdit, onDelete, onTo
           <tbody>
             {websites.length > 0 ? (
               websites.map((website) => (
-                <tr key={website.id}>
+                <tr
+                  key={website.id}
+                  aria-selected={selectedWebsiteId === website.id}
+                  className={selectedWebsiteId === website.id ? "is-selected" : ""}
+                >
                   <td>{website.title}</td>
                   <td>{categoriesById[website.categoryId] ?? website.categoryId}</td>
                   <td className="admin-table__url">{website.url}</td>

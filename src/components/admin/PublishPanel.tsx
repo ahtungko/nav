@@ -1,18 +1,20 @@
+import { AdminStatusBanner, type AdminFeedback } from "./AdminStatusBanner";
+
 type PublishPanelProps = {
   categoryCount: number;
   websiteCount: number;
   lastPublishedAt?: string | null;
-  message?: string | null;
+  feedback?: AdminFeedback | null;
   onPublish: () => Promise<void> | void;
 };
 
-export function PublishPanel({ categoryCount, websiteCount, lastPublishedAt, message, onPublish }: PublishPanelProps) {
+export function PublishPanel({ categoryCount, websiteCount, lastPublishedAt, feedback, onPublish }: PublishPanelProps) {
   return (
     <section className="admin-panel admin-panel--publish">
       <div className="admin-panel__header">
         <div>
-          <h3>Publish snapshot</h3>
-          <p>Write the current visible draft rows into the public KV snapshot.</p>
+          <h2>Release draft snapshot</h2>
+          <p>Write the currently visible draft rows into the public KV snapshot that powers the homepage.</p>
         </div>
       </div>
 
@@ -29,7 +31,7 @@ export function PublishPanel({ categoryCount, websiteCount, lastPublishedAt, mes
 
       <div className="admin-publish__meta">
         <p>{lastPublishedAt ? `Last publish: ${new Date(lastPublishedAt).toLocaleString()}` : "No publish has been triggered yet."}</p>
-        {message ? <p className="admin-feedback">{message}</p> : null}
+        <AdminStatusBanner feedback={feedback} />
       </div>
 
       <button type="button" className="admin-button admin-button--primary" onClick={() => void onPublish()}>

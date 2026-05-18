@@ -2,12 +2,13 @@ import type { Category } from "../../types/category";
 
 type CategoriesTableProps = {
   categories: Category[];
+  selectedCategoryId?: string | null;
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => Promise<void> | void;
   onToggleVisible: (category: Category) => Promise<void> | void;
 };
 
-export function CategoriesTable({ categories, onEdit, onDelete, onToggleVisible }: CategoriesTableProps) {
+export function CategoriesTable({ categories, selectedCategoryId, onEdit, onDelete, onToggleVisible }: CategoriesTableProps) {
   return (
     <section className="admin-panel">
       <div className="admin-panel__header">
@@ -33,7 +34,11 @@ export function CategoriesTable({ categories, onEdit, onDelete, onToggleVisible 
           <tbody>
             {categories.length > 0 ? (
               categories.map((category) => (
-                <tr key={category.id}>
+                <tr
+                  key={category.id}
+                  aria-selected={selectedCategoryId === category.id}
+                  className={selectedCategoryId === category.id ? "is-selected" : ""}
+                >
                   <td>{category.name}</td>
                   <td>{category.slug}</td>
                   <td>{category.iconKey}</td>
