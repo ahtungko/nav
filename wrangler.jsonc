@@ -11,7 +11,7 @@
 	},
 	"d1_databases": [
 		{
-			"binding": "vyxolabs_hub",
+			"binding": "DB",
 			"database_name": "vyxolabs-hub",
 			"database_id": "8df416e1-d300-43cc-8856-435c7a912cd5"
 		}
