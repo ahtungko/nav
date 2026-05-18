@@ -7,7 +7,7 @@
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
 }
 
 html {
@@ -23,9 +23,19 @@ html {
 body {
   margin: 0;
   min-height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--app-background);
   color: var(--color-text);
+}
+
+body[data-route-mode="public"] {
+  overflow: hidden;
+}
+
+body[data-route-mode="admin"] {
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body,

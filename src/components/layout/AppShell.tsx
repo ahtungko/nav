@@ -1,6 +1,5 @@
-import { useEffect, type ReactNode } from "react";
-import { applyTheme } from "../../features/theme/apply-theme";
-import { useThemeStore } from "../../features/theme/theme-store";
+import type { ReactNode } from "react";
+import { useThemeDocument } from "../../features/theme/useThemeDocument";
 import { Footer } from "./Footer";
 import { TopBar } from "./TopBar";
 
@@ -9,34 +8,8 @@ type AppShellProps = {
   topBarTools?: ReactNode;
 };
 
-function getColorSchemeMediaQuery() {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return null;
-  return window.matchMedia("(prefers-color-scheme: dark)");
-}
-
 export function AppShell({ children, topBarTools }: AppShellProps) {
-  const preference = useThemeStore((state) => state.preference);
-
-  useEffect(() => {
-    const mediaQuery = getColorSchemeMediaQuery();
-    const updateTheme = () => {
-      applyTheme(preference, mediaQuery?.matches ?? false);
-    };
-
-    updateTheme();
-
-    if (!mediaQuery) return;
-
-    const listener = () => updateTheme();
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", listener);
-      return () => mediaQuery.removeEventListener("change", listener);
-    }
-
-    mediaQuery.addListener(listener);
-    return () => mediaQuery.removeListener(listener);
-  }, [preference]);
+  useThemeDocument("public");
 
   return (
     <div className="app-shell">
