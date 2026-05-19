@@ -2,7 +2,7 @@ import type { Category } from "../../src/types/category";
 import { d1First } from "../lib/d1";
 import { createCategoriesRepository } from "../lib/repositories/categories";
 import { jsonError, noContent } from "../lib/response";
-import { categoryInputSchema, readJson } from "../lib/validation";
+import { categoryCreateInputSchema, categoryUpdateInputSchema, readJson } from "../lib/validation";
 import type { CategoryRow, Env } from "../types";
 
 function toCategory(row: CategoryRow): Category {
@@ -49,7 +49,7 @@ export async function handleAdminCategoriesRequest(
     }
 
     const body = await readJson(request);
-    const parsed = categoryInputSchema.safeParse(body);
+    const parsed = categoryCreateInputSchema.safeParse(body);
 
     if (!parsed.success) {
       return jsonError("invalid_request", 400);
@@ -92,7 +92,7 @@ export async function handleAdminCategoriesRequest(
     }
 
     const body = await readJson(request);
-    const parsed = categoryInputSchema.safeParse(body);
+    const parsed = categoryUpdateInputSchema.safeParse(body);
 
     if (!parsed.success) {
       return jsonError("invalid_request", 400);

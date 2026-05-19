@@ -103,6 +103,15 @@ describe("POST /api/admin/categories", () => {
     expect(created.iconKey).toBe("tabler:robot");
   });
 
+  it("rejects a legacy category icon value when creating a category", async () => {
+    const cookie = await loginAsAdmin();
+
+    const response = await createCategory(cookie, { iconKey: "sparkles" });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
   it("accepts and persists a valid custom Iconify icon id when updating a category", async () => {
     const cookie = await loginAsAdmin();
 

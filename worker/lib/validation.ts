@@ -8,6 +8,13 @@ function isAcceptedCategoryIconValue(value: string): boolean {
   return isValidCategoryIconValue(value) || LEGACY_CATEGORY_ICON_KEYS.has(value);
 }
 
+const categoryInputShape = {
+  name: nonBlankString,
+  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  sortOrder: z.number().int(),
+  isVisible: z.boolean(),
+} as const;
+
 const safeWebsiteUrlSchema = z.string().url().refine((value) => {
   const protocol = new URL(value).protocol;
   return protocol === "http:" || protocol === "https:";
@@ -22,12 +29,14 @@ const optionalSafeWebsiteUrlSchema = z.preprocess((value) => {
   return trimmed.length === 0 ? null : trimmed;
 }, safeWebsiteUrlSchema.nullable().optional());
 
-export const categoryInputSchema = z.object({
-  name: nonBlankString,
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+export const categoryCreateInputSchema = z.object({
+  ...categoryInputShape,
+  iconKey: nonBlankString.refine(isValidCategoryIconValue),
+});
+
+export const categoryUpdateInputSchema = z.object({
+  ...categoryInputShape,
   iconKey: nonBlankString.refine(isAcceptedCategoryIconValue),
-  sortOrder: z.number().int(),
-  isVisible: z.boolean(),
 });
 
 export const websiteInputSchema = z.object({
