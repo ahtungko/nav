@@ -2,9 +2,15 @@ import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 
 import {
   CATEGORY_ICON_OPTIONS,
   getCategoryIconClassName,
-  getCategoryIconOption,
+  getCategoryIconDisplayLabel,
   renderCategoryIcon,
 } from "../../lib/category-icons";
+import {
+  DEFAULT_CATEGORY_ICON_KEY,
+  isValidIconifyIconId,
+  resolveCategoryIconKey,
+  splitCategoryIconValue,
+} from "../../lib/category-icon-registry";
 
 export type CategoryFormValues = {
   name: string;
@@ -14,11 +20,10 @@ export type CategoryFormValues = {
   isVisible: boolean;
 };
 
-const DEFAULT_CATEGORY_ICON_KEY = CATEGORY_ICON_OPTIONS[0]!.key;
-
-function normalizeIconKey(iconKey: string | null | undefined) {
-  return CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey)?.key ?? DEFAULT_CATEGORY_ICON_KEY;
-}
+type CategoryFormState = CategoryFormValues & {
+  builtInIconKey: string;
+  customIconifyIconId: string;
+};
 
 function slugifyCategoryName(name: string) {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
@@ -40,42 +45,73 @@ type CategoryFormProps = {
   submitLabel?: string;
 };
 
-function createFormValues(initialValues?: CategoryFormValues | null): CategoryFormValues {
+function createFormState(initialValues?: CategoryFormValues | null): CategoryFormState {
   if (!initialValues) {
-    return emptyValues;
+    return {
+      ...emptyValues,
+      builtInIconKey: DEFAULT_CATEGORY_ICON_KEY,
+      customIconifyIconId: "",
+    };
   }
+
+  const { builtInIconKey, customIconifyIconId } = splitCategoryIconValue(initialValues.iconKey);
 
   return {
     ...initialValues,
-    iconKey: normalizeIconKey(initialValues.iconKey),
+    iconKey: initialValues.iconKey,
+    builtInIconKey,
+    customIconifyIconId,
   };
 }
 
+function getCustomIconifyValidationMessage(customIconifyIconId: string) {
+  if (!customIconifyIconId) {
+    return null;
+  }
+
+  return isValidIconifyIconId(customIconifyIconId) ? null : "Enter a valid Iconify ID like mdi:home.";
+}
+
 export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
-  const [values, setValues] = useState<CategoryFormValues>(() => createFormValues(initialValues));
+  const [values, setValues] = useState<CategoryFormState>(() => createFormState(initialValues));
   const [hasManualSlugOverride, setHasManualSlugOverride] = useState(() => Boolean(initialValues?.slug));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const iconOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
-    setValues(createFormValues(initialValues));
+    setValues(createFormState(initialValues));
     setHasManualSlugOverride(Boolean(initialValues?.slug));
     setErrorMessage(null);
   }, [initialValues]);
 
+  const customIconifyValidationMessage = getCustomIconifyValidationMessage(values.customIconifyIconId);
+  const effectiveIconKey = resolveCategoryIconKey(values.builtInIconKey, values.customIconifyIconId);
+  const effectiveIconSource = isValidIconifyIconId(values.customIconifyIconId) ? "Custom Iconify ID" : "Built-in picker";
+  const effectiveIconLabel = getCategoryIconDisplayLabel(effectiveIconKey);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage(null);
+
+    if (customIconifyValidationMessage) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const iconKey = resolveCategoryIconKey(values.builtInIconKey, values.customIconifyIconId);
+
       await onSubmit({
-        ...values,
-        iconKey: normalizeIconKey(values.iconKey),
+        name: values.name,
+        slug: values.slug,
+        iconKey,
+        sortOrder: values.sortOrder,
+        isVisible: values.isVisible,
       });
       if (!initialValues) {
-        setValues(emptyValues);
+        setValues(createFormState(null));
         setHasManualSlugOverride(false);
       }
     } catch (error) {
@@ -85,12 +121,12 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
     }
   }
 
-  function selectIcon(iconKey: string) {
-    setValues((current) => ({ ...current, iconKey }));
+  function selectIcon(builtInIconKey: string) {
+    setValues((current) => ({ ...current, builtInIconKey }));
   }
 
-  function focusIcon(iconKey: string) {
-    iconOptionRefs.current[iconKey]?.focus();
+  function focusIcon(builtInIconKey: string) {
+    iconOptionRefs.current[builtInIconKey]?.focus();
   }
 
   function moveSelection(nextIndex: number) {
@@ -140,8 +176,6 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
     }
   }
 
-  const selectedIcon = getCategoryIconOption(values.iconKey);
-
   return (
     <form className="admin-form admin-panel admin-editor-card" onSubmit={handleSubmit}>
       <div className="admin-form__header">
@@ -188,17 +222,18 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
 
       <fieldset className="admin-field admin-icon-picker-fieldset">
         <legend id="category-icon-label">Category icon</legend>
-        <input type="hidden" name="iconKey" value={values.iconKey} />
+        <input type="hidden" name="iconKey" value={effectiveIconKey} />
         <div className="admin-icon-preview" aria-live="polite">
-          <span className={`category-card__icon ${getCategoryIconClassName(selectedIcon.key)}`}>{renderCategoryIcon(selectedIcon.key)}</span>
+          <span className={`category-card__icon ${getCategoryIconClassName(effectiveIconKey)}`}>{renderCategoryIcon(effectiveIconKey)}</span>
           <div>
-            <strong>{selectedIcon.label}</strong>
-            <p>Selected icon key: {selectedIcon.key}</p>
+            <strong>{effectiveIconLabel}</strong>
+            <p>Preview source: {effectiveIconSource}</p>
+            <p>Effective icon key: {effectiveIconKey}</p>
           </div>
         </div>
         <div className="admin-icon-picker" role="radiogroup" aria-labelledby="category-icon-label">
           {CATEGORY_ICON_OPTIONS.map((option, index) => {
-            const isSelected = values.iconKey === option.key;
+            const isSelected = values.builtInIconKey === option.key;
             const optionLabelId = `category-icon-option-${option.key}`;
 
             return (
@@ -227,6 +262,27 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
           })}
         </div>
       </fieldset>
+
+      <label className="admin-field">
+        <span>Custom Iconify ID</span>
+        <input
+          value={values.customIconifyIconId}
+          onChange={(event) => {
+            setErrorMessage(null);
+            setValues((current) => ({ ...current, customIconifyIconId: event.target.value.trim() }));
+          }}
+          placeholder="mdi:home"
+          aria-describedby="category-custom-iconify-help category-custom-iconify-feedback"
+        />
+        <p id="category-custom-iconify-help" className="admin-field__help">
+          A valid custom Iconify ID overrides the built-in picker for preview and submit.
+        </p>
+        {customIconifyValidationMessage ? (
+          <p id="category-custom-iconify-feedback" className="admin-field__error" role="alert">
+            {customIconifyValidationMessage}
+          </p>
+        ) : null}
+      </label>
 
       <label className="admin-field">
         <span>Sort order</span>
@@ -262,5 +318,3 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
     </form>
   );
 }
-
-

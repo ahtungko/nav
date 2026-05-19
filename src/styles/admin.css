@@ -437,6 +437,21 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
+.admin-field__help,
+.admin-field__error {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.admin-field__help {
+  color: var(--color-muted);
+}
+
+.admin-field__error {
+  color: #fca5a5;
+}
+
 :root[data-theme="night"] .admin-field select { color-scheme: dark; }
 :root[data-theme="night"] .admin-field select option { background-color: #0f0714; color: #f5f0ff; }
 :root:not([data-theme="night"]) .admin-field select { color-scheme: light; }
