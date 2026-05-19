@@ -34,9 +34,12 @@ describe("category icon registry", () => {
   it("validates iconify icon ids", () => {
     expect(isValidIconifyIconId("mdi:home")).toBe(true);
     expect(isValidIconifyIconId("tabler:brand-openai")).toBe(true);
+    expect(isValidIconifyIconId("@custom-provider:mdi-light:home")).toBe(true);
     expect(isValidIconifyIconId("ai")).toBe(false);
     expect(isValidIconifyIconId("mdi")).toBe(false);
-    expect(isValidIconifyIconId("mdi:" )).toBe(false);
+    expect(isValidIconifyIconId("mdi:")).toBe(false);
+    expect(isValidIconifyIconId("mdi:home_icon")).toBe(false);
+    expect(isValidIconifyIconId("mdi:home.icon")).toBe(false);
     expect(isValidIconifyIconId("mdi:home with spaces")).toBe(false);
   });
 

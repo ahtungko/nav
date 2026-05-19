@@ -3,7 +3,9 @@ import type { JSX } from "react";
 import {
   CATEGORY_ICON_OPTIONS as REGISTRY_CATEGORY_ICON_OPTIONS,
   DEFAULT_CATEGORY_ICON_KEY,
+  type BuiltInCategoryIconOption,
   type CategoryIconOption,
+  type IconifyIconId,
   isBuiltInCategoryIconKey,
   isValidIconifyIconId,
   normalizeBuiltInCategoryIconKey,
@@ -11,7 +13,7 @@ import {
 
 export { CATEGORY_ICON_OPTIONS } from "./category-icon-registry";
 
-type RenderableCategoryIconOption = CategoryIconOption & {
+type RenderableBuiltInCategoryIconOption = BuiltInCategoryIconOption & {
   icon: JSX.Element;
 };
 
@@ -76,12 +78,21 @@ function createBuiltInIcon(iconKey: string): JSX.Element {
   }
 }
 
-const RENDERABLE_CATEGORY_ICON_OPTIONS: RenderableCategoryIconOption[] = REGISTRY_CATEGORY_ICON_OPTIONS.map((option) => ({
+function createCustomCategoryIconOption(iconKey: IconifyIconId): CategoryIconOption {
+  return {
+    kind: "custom",
+    key: iconKey,
+    label: iconKey,
+  };
+}
+
+const RENDERABLE_CATEGORY_ICON_OPTIONS: RenderableBuiltInCategoryIconOption[] = REGISTRY_CATEGORY_ICON_OPTIONS.map((option) => ({
   ...option,
   icon: createBuiltInIcon(option.key),
 }));
 
-const FALLBACK_CATEGORY_ICON_OPTION: RenderableCategoryIconOption = {
+const FALLBACK_CATEGORY_ICON_OPTION: RenderableBuiltInCategoryIconOption = {
+  kind: "built-in",
   key: DEFAULT_CATEGORY_ICON_KEY,
   label: REGISTRY_CATEGORY_ICON_OPTIONS.find((option) => option.key === DEFAULT_CATEGORY_ICON_KEY)?.label ?? "AI",
   icon: createBuiltInIcon(DEFAULT_CATEGORY_ICON_KEY),
@@ -93,10 +104,7 @@ export function getCategoryIconOption(iconKey: string | null | undefined): Categ
   }
 
   if (isValidIconifyIconId(iconKey)) {
-    return {
-      key: iconKey,
-      label: iconKey,
-    };
+    return createCustomCategoryIconOption(iconKey);
   }
 
   return FALLBACK_CATEGORY_ICON_OPTION;
