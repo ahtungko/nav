@@ -1,12 +1,21 @@
+import { Icon } from "@iconify/react";
 import type { JSX } from "react";
+import {
+  CATEGORY_ICON_OPTIONS as REGISTRY_CATEGORY_ICON_OPTIONS,
+  DEFAULT_CATEGORY_ICON_KEY,
+  type CategoryIconOption,
+  isBuiltInCategoryIconKey,
+  isValidIconifyIconId,
+  normalizeBuiltInCategoryIconKey,
+} from "./category-icon-registry";
 
-type CategoryIconOption = {
-  key: string;
-  label: string;
+export { CATEGORY_ICON_OPTIONS } from "./category-icon-registry";
+
+type RenderableCategoryIconOption = CategoryIconOption & {
   icon: JSX.Element;
 };
 
-function createIcon(iconKey: string): JSX.Element {
+function createBuiltInIcon(iconKey: string): JSX.Element {
   switch (iconKey) {
     case "ai":
       return (
@@ -67,30 +76,49 @@ function createIcon(iconKey: string): JSX.Element {
   }
 }
 
-export const CATEGORY_ICON_OPTIONS: CategoryIconOption[] = [
-  { key: "ai", label: "AI", icon: createIcon("ai") },
-  { key: "website", label: "Website", icon: createIcon("website") },
-  { key: "design", label: "Design", icon: createIcon("design") },
-  { key: "resources", label: "Resources", icon: createIcon("resources") },
-  { key: "dev", label: "Dev Tools", icon: createIcon("dev") },
-  { key: "productivity", label: "Productivity", icon: createIcon("productivity") },
-  { key: "entertainment", label: "Entertainment", icon: createIcon("entertainment") },
-];
+const RENDERABLE_CATEGORY_ICON_OPTIONS: RenderableCategoryIconOption[] = REGISTRY_CATEGORY_ICON_OPTIONS.map((option) => ({
+  ...option,
+  icon: createBuiltInIcon(option.key),
+}));
 
-const FALLBACK_CATEGORY_ICON_OPTION: CategoryIconOption = {
-  key: "fallback",
-  label: "Fallback",
-  icon: createIcon("fallback"),
+const FALLBACK_CATEGORY_ICON_OPTION: RenderableCategoryIconOption = {
+  key: DEFAULT_CATEGORY_ICON_KEY,
+  label: REGISTRY_CATEGORY_ICON_OPTIONS.find((option) => option.key === DEFAULT_CATEGORY_ICON_KEY)?.label ?? "AI",
+  icon: createBuiltInIcon(DEFAULT_CATEGORY_ICON_KEY),
 };
 
 export function getCategoryIconOption(iconKey: string | null | undefined): CategoryIconOption {
-  return CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey) ?? FALLBACK_CATEGORY_ICON_OPTION;
+  if (isBuiltInCategoryIconKey(iconKey)) {
+    return REGISTRY_CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey) ?? FALLBACK_CATEGORY_ICON_OPTION;
+  }
+
+  if (isValidIconifyIconId(iconKey)) {
+    return {
+      key: iconKey,
+      label: iconKey,
+    };
+  }
+
+  return FALLBACK_CATEGORY_ICON_OPTION;
+}
+
+export function getCategoryIconDisplayLabel(iconKey: string | null | undefined) {
+  return getCategoryIconOption(iconKey).label;
 }
 
 export function renderCategoryIcon(iconKey: string | null | undefined) {
-  return getCategoryIconOption(iconKey).icon;
+  if (isValidIconifyIconId(iconKey)) {
+    return <Icon icon={iconKey} aria-hidden={true} />;
+  }
+
+  const normalizedIconKey = normalizeBuiltInCategoryIconKey(iconKey);
+  return RENDERABLE_CATEGORY_ICON_OPTIONS.find((option) => option.key === normalizedIconKey)?.icon ?? FALLBACK_CATEGORY_ICON_OPTION.icon;
 }
 
 export function getCategoryIconClassName(iconKey: string | null | undefined) {
-  return `category-card__icon--${getCategoryIconOption(iconKey).key}`;
+  if (isValidIconifyIconId(iconKey)) {
+    return "category-card__icon--custom";
+  }
+
+  return `category-card__icon--${normalizeBuiltInCategoryIconKey(iconKey)}`;
 }
