@@ -9,6 +9,7 @@ export default defineConfig({
         compatibilityDate: "2026-05-15",
         bindings: {
           ADMIN_PASSWORD: "secret",
+          ADMIN_SESSION_SECRET: "session-secret",
         },
       },
     }),

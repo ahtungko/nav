@@ -4,6 +4,7 @@ export type Env = {
   DB: D1Database;
   PUBLIC_SNAPSHOT: KVNamespace;
   ADMIN_PASSWORD?: string;
+  ADMIN_SESSION_SECRET?: string;
 };
 
 export type CategoryRow = {

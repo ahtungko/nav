@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SELF, env } from "cloudflare:test";
-import { buildAdminSessionToken, verifyAdminSessionToken } from "../../worker/lib/auth";
+import { buildAdminSessionToken, verifyAdminSessionToken, verifyPassword } from "../../worker/lib/auth";
+import type { Env } from "../../worker/types";
 
 function readSessionToken(setCookie: string): string {
   const [cookie] = setCookie.split(";", 1);
@@ -8,8 +9,26 @@ function readSessionToken(setCookie: string): string {
 }
 
 describe("admin session helpers", () => {
-  it("builds a token that can be verified and rejects tampering", async () => {
+  it("signs and verifies with ADMIN_SESSION_SECRET rather than ADMIN_PASSWORD", async () => {
     const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-a" });
+
+    const differentPasswordEnv = {
+      ...env,
+      ADMIN_PASSWORD: "different-password",
+    } satisfies Env;
+    const differentSecretEnv = {
+      ...env,
+      ADMIN_SESSION_SECRET: "different-session-secret",
+    } satisfies Env;
+
+    await expect(verifyPassword("secret", env)).resolves.toBe(true);
+    await expect(verifyPassword("session-secret", env)).resolves.toBe(false);
+    await expect(verifyAdminSessionToken(token, differentPasswordEnv, { now: 1_700_000_100 })).resolves.toBe(true);
+    await expect(verifyAdminSessionToken(token, differentSecretEnv, { now: 1_700_000_100 })).resolves.toBe(false);
+  });
+
+  it("rejects tampering", async () => {
+    const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-tamper" });
 
     await expect(verifyAdminSessionToken(token, env, { now: 1_700_000_100 })).resolves.toBe(true);
     await expect(verifyAdminSessionToken(`${token}tampered`, env, { now: 1_700_000_100 })).resolves.toBe(false);
@@ -29,6 +48,27 @@ describe("admin session helpers", () => {
     });
 
     await expect(verifyAdminSessionToken(token, env, { now: 1_700_000_061 })).resolves.toBe(false);
+  });
+
+  it("throws when ADMIN_SESSION_SECRET is missing during build", async () => {
+    const missingSecretEnv = {
+      ...env,
+      ADMIN_SESSION_SECRET: undefined,
+    } satisfies Env;
+
+    await expect(buildAdminSessionToken(missingSecretEnv)).rejects.toThrow(
+      "ADMIN_SESSION_SECRET is required to build an admin session token",
+    );
+  });
+
+  it("returns false when ADMIN_SESSION_SECRET is missing during verify", async () => {
+    const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-missing-secret" });
+    const missingSecretEnv = {
+      ...env,
+      ADMIN_SESSION_SECRET: undefined,
+    } satisfies Env;
+
+    await expect(verifyAdminSessionToken(token, missingSecretEnv, { now: 1_700_000_100 })).resolves.toBe(false);
   });
 });
 

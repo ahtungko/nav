@@ -39,13 +39,13 @@ function decodeBase64Url(value: string): string | null {
 }
 
 async function importAdminSessionKey(env: Env): Promise<CryptoKey | null> {
-  if (!env.ADMIN_PASSWORD) {
+  if (!env.ADMIN_SESSION_SECRET) {
     return null;
   }
 
   return crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(env.ADMIN_PASSWORD),
+    new TextEncoder().encode(env.ADMIN_SESSION_SECRET),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -115,7 +115,7 @@ export async function buildAdminSessionToken(env: Env, options: BuildAdminSessio
   const signature = await signAdminSession(signingInput, env);
 
   if (!signature) {
-    throw new Error("ADMIN_PASSWORD is required to build an admin session token");
+    throw new Error("ADMIN_SESSION_SECRET is required to build an admin session token");
   }
 
   return `${signingInput}.${signature}`;
