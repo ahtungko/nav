@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useThemeDocument } from "../../features/theme/useThemeDocument";
-import { ThemeToggle } from "../public/ThemeToggle";
+import { PublicThemeButton } from "../public/PublicThemeButton";
 
 type AdminShellProps = {
   children: ReactNode;
@@ -12,6 +12,7 @@ export function AdminShell({ children, centered = false }: AdminShellProps) {
 
   return (
     <div className="admin-app">
+      {/* Ambient glows */}
       <div className="admin-app__scene" aria-hidden="true">
         <span className="admin-app__halo admin-app__halo--a" />
         <span className="admin-app__halo admin-app__halo--b" />
@@ -21,15 +22,8 @@ export function AdminShell({ children, centered = false }: AdminShellProps) {
 
       <div className={`admin-app__frame${centered ? " is-centered" : ""}`}>
         <header className="admin-topbar">
-          <a className="brand-mark" href="/" aria-label="Go to homepage">
-            <span className="brand-mark__icon" aria-hidden="true">
-              ✿
-            </span>
-            <span className="brand-mark__text">vyxolabs</span>
-          </a>
-
           <div className="admin-topbar__tools">
-            <ThemeToggle />
+            <PublicThemeButton />
           </div>
         </header>
 
