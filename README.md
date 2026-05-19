@@ -129,7 +129,7 @@ This repo already expects:
 
 - one D1 database bound as `DB`
 - one KV namespace bound as `PUBLIC_SNAPSHOT`
-- one secret named `ADMIN_PASSWORD`
+- two secrets named `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET`
 
 ### Create resources
 
@@ -144,10 +144,15 @@ npx wrangler kv namespace create PUBLIC_SNAPSHOT
 npx wrangler d1 migrations apply vyxolabs-hub --remote
 ```
 
-### Set admin password
+### Set admin secrets
+
+`ADMIN_PASSWORD` is the human-entered admin login password.
+
+`ADMIN_SESSION_SECRET` is a long random secret used only for signing admin session cookies.
 
 ```bash
 npx wrangler secret put ADMIN_PASSWORD
+npx wrangler secret put ADMIN_SESSION_SECRET
 ```
 
 ### Deploy
@@ -160,13 +165,14 @@ npm run deploy
 
 ## Important deployment note
 
-The app is **not fully deployable until `ADMIN_PASSWORD` is set**.
+The app is **not fully deployable until both `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are set**.
 
 If deploy is blocked, check:
 
 1. Cloudflare auth/account context is valid
 2. `wrangler.jsonc` points at the correct D1 / KV resources
 3. `ADMIN_PASSWORD` secret exists
+4. `ADMIN_SESSION_SECRET` secret exists
 
 ---
 
@@ -196,7 +202,7 @@ Pinned links and theme preference are browser-local.
 - website URLs are restricted to `http:` / `https:`
 - malformed favicon URLs do not crash rendering
 - category deletion is blocked if websites still belong to that category
-- admin session uses signed, time-bounded cookies
+- admin session uses signed, time-bounded cookies with a dedicated signing secret
 
 ---
 
