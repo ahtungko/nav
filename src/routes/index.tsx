@@ -2,7 +2,7 @@ import { useLoaderData, useRouteError, isRouteErrorResponse, type LoaderFunction
 import { z } from "zod";
 import { HomePage } from "../app/public/HomePage";
 import { AppShell } from "../components/layout/AppShell";
-import { ThemeToggle } from "../components/public/ThemeToggle";
+import { PublicThemeButton } from "../components/public/PublicThemeButton";
 import { publishedSnapshotSchema } from "../types/snapshot";
 
 const PUBLIC_SNAPSHOT_PATH = "/api/public/site";
@@ -57,13 +57,16 @@ export function PublicRouteErrorBoundary() {
   }
 
   return (
-    <AppShell topBarTools={<ThemeToggle />}>
-      <section className="status-panel" aria-live="polite">
-        <div className="status-panel__inner">
-          <h1>Unable to load the public directory</h1>
+    <AppShell>
+      <div className="topbar-float">
+        <PublicThemeButton />
+      </div>
+      <div className="status-page">
+        <div className="status-card">
+          <h1>Unable to load</h1>
           <p>{message}</p>
         </div>
-      </section>
+      </div>
     </AppShell>
   );
 }

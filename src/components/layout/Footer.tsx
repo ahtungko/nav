@@ -1,6 +1,7 @@
 export function Footer() {
   return (
     <footer className="footer">
+      <span>© 2026 vyxolabs.com</span>
       <div className="footer__socials" aria-label="Social links">
         <a href="https://github.com/ahtungko/nav" aria-label="GitHub" target="_blank" rel="noreferrer">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -14,7 +15,6 @@ export function Footer() {
           </svg>
         </a>
       </div>
-      <p>© 2026 vyxolabs.com. All rights reserved.</p>
     </footer>
   );
 }

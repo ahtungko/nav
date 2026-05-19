@@ -1,81 +1,91 @@
+/* ═══════════════════════════════════════════════════════════
+   theme.css  —  Sakura Dashboard
+   Background images: /daymode.png  /darkmode.png
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Day (Sakura morning) ──────────────────────────────── */
 :root {
   color-scheme: light;
-  --app-background-image: url("/daymode.png");
-  --app-background:
-    linear-gradient(180deg, rgba(240, 236, 241, 0.34), rgba(156, 137, 154, 0.56)),
-    radial-gradient(circle at 50% 42%, rgba(255, 203, 223, 0.12), transparent 32%),
-    radial-gradient(circle at 18% 22%, rgba(158, 181, 218, 0.08), transparent 28%),
-    var(--app-background-image) center center / cover no-repeat fixed,
-    linear-gradient(180deg, #aec5ea 0%, #edd9e4 52%, #cf9fb2 100%);
-  --color-text: #35394b;
-  --color-heading: #44495f;
-  --color-muted: rgba(74, 80, 99, 0.78);
-  --color-soft: rgba(98, 103, 121, 0.68);
-  --color-brand: #d97aa6;
-  --color-brand-strong: #b96190;
-  --color-brand-accent: #e7a6c4;
-  --color-border: rgba(255, 255, 255, 0.3);
-  --color-border-strong: rgba(98, 104, 128, 0.18);
-  --color-surface: rgba(255, 255, 255, 0.16);
-  --color-surface-strong: rgba(255, 255, 255, 0.24);
-  --color-surface-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
-  --color-card-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(245, 240, 247, 0.18));
-  --color-card-bg-active: linear-gradient(180deg, rgba(255, 242, 248, 0.52), rgba(238, 227, 244, 0.26));
-  --color-tag-bg: rgba(255, 255, 255, 0.36);
-  --color-tag-text: #535a71;
-  --color-row-divider: rgba(98, 104, 128, 0.14);
-  --color-empty-border: rgba(98, 104, 128, 0.22);
-  --color-empty-bg: rgba(255, 255, 255, 0.18);
-  --color-search-icon: rgba(86, 92, 111, 0.74);
-  --color-scene-glow-a: rgba(255, 125, 178, 0.2);
-  --color-scene-glow-b: rgba(112, 136, 255, 0.14);
-  --color-stat-value: #3e4458;
-  --shadow-soft: 0 18px 40px rgba(110, 102, 128, 0.12);
-  --shadow-card: 0 18px 46px rgba(110, 102, 128, 0.16);
-  --shadow-panel: 0 22px 60px rgba(110, 102, 128, 0.16);
-  --shadow-brand: 0 18px 30px rgba(235, 109, 162, 0.2);
-  --blur-strong: blur(20px);
-  --radius-xl: 30px;
-  --radius-lg: 24px;
-  --radius-md: 18px;
-  --shell-width: 1240px;
+
+  /* The actual image lives on html via globals.css using this var */
+  --app-bg-image: url("/daymode.png");
+
+  --color-text:          #2d1620;
+  --color-heading:       #180c12;
+  --color-muted:         #7a4f5f;
+  --color-soft:          #b8909f;
+  --color-divider:       rgba(160, 80, 110, 0.2);
+
+  --color-brand:         #c94f7a;
+  --color-brand-hover:   #a83d64;
+  --color-brand-accent:  #f0a0c0;
+  --color-brand-faint:   rgba(201, 79, 122, 0.12);
+
+  /* Glass — higher opacity so text stays readable over the vivid photo */
+  --glass-bg:            rgba(255, 248, 251, 0.55);
+  --glass-bg-raised:     rgba(255, 253, 255, 0.72);
+  --glass-border:        rgba(255, 255, 255, 0.65);
+  --glass-border-subtle: rgba(200, 140, 160, 0.22);
+  --glass-shadow:        0 4px 24px rgba(100, 30, 55, 0.12);
+  --glass-shadow-raised: 0 12px 40px rgba(100, 30, 55, 0.18);
+  --glass-blur:          blur(20px);
+  --glass-blur-strong:   blur(36px);
+
+  --sidebar-bg:          rgba(255, 240, 247, 0.42);
+  --sidebar-border:      rgba(255, 255, 255, 0.50);
+  --sidebar-width:       240px;
+
+  --radius-pill:  999px;
+  --radius-lg:    24px;
+  --radius-md:    16px;
+  --radius-sm:    10px;
+  --shell-width:  1280px;
+
+  --tag-bg:        rgba(201, 79, 122, 0.10);
+  --tag-text:      #9b3058;
+  --tag-border:    rgba(201, 79, 122, 0.22);
+
+  --pin-active:    #c94f7a;
+  --pin-idle:      rgba(120, 70, 90, 0.40);
 }
 
+/* ─── Night (Midnight Sakura) ───────────────────────────── */
 :root[data-theme="night"] {
   color-scheme: dark;
-  --app-background-image: url("/darkmode.png");
-  --app-background:
-    linear-gradient(180deg, rgba(7, 10, 22, 0.34), rgba(5, 7, 14, 0.7)),
-    radial-gradient(circle at 50% 42%, rgba(255, 170, 209, 0.1), transparent 24%),
-    var(--app-background-image) center center / cover no-repeat fixed,
-    linear-gradient(180deg, #0a1122 0%, #090d19 46%, #05070f 100%);
-  --color-text: #f5f3ff;
-  --color-heading: rgba(255, 248, 255, 0.96);
-  --color-muted: rgba(242, 240, 255, 0.76);
-  --color-soft: rgba(242, 240, 255, 0.58);
-  --color-brand: #f48ab5;
-  --color-brand-strong: #ff73a9;
-  --color-brand-accent: #ffc7dc;
-  --color-border: rgba(255, 255, 255, 0.11);
-  --color-border-strong: rgba(255, 255, 255, 0.18);
-  --color-surface: rgba(255, 255, 255, 0.08);
-  --color-surface-strong: rgba(255, 255, 255, 0.1);
-  --color-surface-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
-  --color-card-bg: linear-gradient(180deg, rgba(34, 39, 68, 0.36), rgba(12, 16, 32, 0.62));
-  --color-card-bg-active: linear-gradient(180deg, rgba(68, 54, 100, 0.48), rgba(18, 22, 42, 0.72));
-  --color-tag-bg: rgba(255, 255, 255, 0.08);
-  --color-tag-text: rgba(255, 245, 252, 0.9);
-  --color-row-divider: rgba(255, 255, 255, 0.08);
-  --color-empty-border: rgba(255, 255, 255, 0.16);
-  --color-empty-bg: rgba(11, 14, 28, 0.28);
-  --color-search-icon: rgba(255, 255, 255, 0.7);
-  --color-scene-glow-a: rgba(255, 125, 178, 0.22);
-  --color-scene-glow-b: rgba(112, 136, 255, 0.16);
-  --color-stat-value: #fff6fb;
-  --shadow-soft: 0 24px 80px rgba(2, 6, 20, 0.42);
-  --shadow-card: 0 18px 46px rgba(5, 8, 20, 0.26);
-  --shadow-panel: 0 22px 60px rgba(3, 7, 20, 0.32);
-  --shadow-brand: 0 18px 30px rgba(235, 109, 162, 0.28);
+
+  --app-bg-image: url("/darkmode.png");
+
+  --color-text:          #f2e2eb;
+  --color-heading:       #ffffff;
+  --color-muted:         #d0a0b8;
+  --color-soft:          #7a4f65;
+  --color-divider:       rgba(255, 160, 200, 0.14);
+
+  --color-brand:         #f472b6;
+  --color-brand-hover:   #fb7fcb;
+  --color-brand-accent:  #fbb6d8;
+  --color-brand-faint:   rgba(244, 114, 182, 0.15);
+
+  /* Glass — darker tint to stay readable over the moody night photo */
+  --glass-bg:            rgba(10, 4, 8, 0.48);
+  --glass-bg-raised:     rgba(20, 8, 16, 0.68);
+  --glass-border:        rgba(255, 170, 210, 0.16);
+  --glass-border-subtle: rgba(255, 140, 185, 0.10);
+  --glass-shadow:        0 4px 24px rgba(0, 0, 0, 0.50);
+  --glass-shadow-raised: 0 12px 40px rgba(0, 0, 0, 0.65);
+  --glass-blur:          blur(20px);
+  --glass-blur-strong:   blur(36px);
+
+  --sidebar-bg:          rgba(8, 2, 6, 0.45);
+  --sidebar-border:      rgba(255, 160, 200, 0.16);
+  --sidebar-width:       240px;
+
+  --tag-bg:        rgba(244, 114, 182, 0.14);
+  --tag-text:      #f9b8d4;
+  --tag-border:    rgba(244, 114, 182, 0.22);
+
+  --pin-active:    #f472b6;
+  --pin-idle:      rgba(220, 160, 190, 0.45);
 }
 
 @media (prefers-color-scheme: dark) {

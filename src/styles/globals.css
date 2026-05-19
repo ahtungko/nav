@@ -1,23 +1,12 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-html,
-body,
-#root {
-  min-height: 100%;
-}
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
 
 html {
-  font-family:
-    Inter,
-    "Segoe UI",
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
 }
 
 body {
@@ -25,36 +14,25 @@ body {
   min-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: var(--app-background);
   color: var(--color-text);
 }
 
-body[data-route-mode="public"] {
-  overflow: hidden;
+/* ─── Background image — always the deepest layer ──── */
+html {
+  background: var(--app-bg-image, #0a0510) center / cover no-repeat fixed;
+  background-color: #ffe6f2; /* day-mode fallback */
 }
 
-body[data-route-mode="admin"] {
-  overflow-x: hidden;
-  overflow-y: auto;
-}
+body[data-route-mode="public"] { overflow: hidden; }
+body[data-route-mode="admin"]  { overflow-x: hidden; overflow-y: auto; }
 
-body,
-input,
-button,
-textarea,
-select {
-  font: inherit;
-}
+body, input, button, textarea, select { font: inherit; }
+button { border: 0; cursor: pointer; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
 
-button {
-  border: 0;
-}
-
-a {
-  color: inherit;
-}
-
-img {
-  display: block;
-  max-width: 100%;
-}
+/* ─── Custom Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar               { width: 6px; height: 6px; }
+::-webkit-scrollbar-track         { background: transparent; }
+::-webkit-scrollbar-thumb         { background: var(--glass-border-subtle); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover   { background: var(--color-brand-accent); }

@@ -1,11 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useThemeDocument } from "../../features/theme/useThemeDocument";
 import { Footer } from "./Footer";
-import { TopBar } from "./TopBar";
 
 type AppShellProps = {
   children: ReactNode;
-  topBarTools?: ReactNode;
 };
 
 const petals = Array.from({ length: 26 }, (_, index) => ({
@@ -19,24 +17,12 @@ const petals = Array.from({ length: 26 }, (_, index) => ({
   opacity: (0.35 + (index % 5) * 0.09).toFixed(2),
 }));
 
-export function AppShell({ children, topBarTools }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   useThemeDocument("public");
 
   return (
     <div className="app-shell">
-      <div className="app-shell__scene" aria-hidden="true">
-        <span className="app-shell__halo app-shell__halo--a" />
-        <span className="app-shell__halo app-shell__halo--b" />
-        <span className="app-shell__mist" />
-        <span className="app-shell__horizon" />
-        <span className="app-shell__water" />
-        <span className="app-shell__reflection" />
-        <span className="app-shell__floating-light app-shell__floating-light--a" />
-        <span className="app-shell__floating-light app-shell__floating-light--b" />
-        <span className="app-shell__floating-light app-shell__floating-light--c" />
-        <span className="app-shell__floating-light app-shell__floating-light--d" />
-      </div>
-
+      {/* Sakura petals */}
       <div className="petals-layer" aria-hidden="true">
         {petals.map((petal, index) => (
           <span
@@ -58,9 +44,11 @@ export function AppShell({ children, topBarTools }: AppShellProps) {
         ))}
       </div>
 
+      {/* Full-bleed layout */}
       <div className="app-shell__frame">
-        <TopBar tools={topBarTools} />
-        <main className="app-shell__content">{children}</main>
+        <main className="app-main">
+          {children}
+        </main>
         <Footer />
       </div>
     </div>
