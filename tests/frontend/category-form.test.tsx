@@ -79,6 +79,40 @@ describe("CategoryForm", () => {
     expect(screen.getByText(/effective icon key: mdi:star/i)).toBeInTheDocument();
   });
 
+  it("preserves an untouched saved legacy icon key through submit and labels the preview source accordingly", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <CategoryForm
+        onSubmit={onSubmit}
+        initialValues={{
+          name: "AI Tools",
+          slug: "ai-tools",
+          iconKey: "sparkles",
+          sortOrder: 1,
+          isVisible: true,
+        }}
+      />,
+    );
+
+    expect(screen.getByText(/preview source: existing saved legacy icon/i)).toBeInTheDocument();
+    expect(screen.getByText(/effective icon key: sparkles/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/custom iconify id/i)).toHaveValue("");
+    expect(screen.getByRole("radio", { name: /^ai$/i })).toHaveAttribute("aria-checked", "true");
+
+    fireEvent.change(screen.getByLabelText(/^name$/i), { target: { value: "AI Tools Updated" } });
+    fireEvent.click(screen.getByRole("button", { name: /save category/i }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconKey: "sparkles",
+          name: "AI Tools Updated",
+        }),
+      );
+    });
+  });
+
   it("blocks submit for a malformed custom iconify id, marks the field invalid, and focuses it", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 

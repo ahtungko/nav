@@ -7,6 +7,7 @@ import {
 } from "../../lib/category-icons";
 import {
   DEFAULT_CATEGORY_ICON_KEY,
+  isBuiltInCategoryIconKey,
   isValidIconifyIconId,
   resolveCategoryIconKey,
   splitCategoryIconValue,
@@ -81,9 +82,20 @@ function getCustomIconifyValidationMessage(customIconifyIconId: string) {
   return isValidIconifyIconId(customIconifyIconId) ? null : "Enter a valid Iconify ID like mdi:home.";
 }
 
+function getUntouchedLegacyIconKey(initialValues?: CategoryFormValues | null) {
+  const iconKey = initialValues?.iconKey?.trim();
+
+  if (!iconKey || isBuiltInCategoryIconKey(iconKey) || isValidIconifyIconId(iconKey)) {
+    return null;
+  }
+
+  return iconKey;
+}
+
 export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, submitLabel = "Save category" }: CategoryFormProps) {
   const [values, setValues] = useState<CategoryFormState>(() => createFormState(initialValues));
   const [hasManualSlugOverride, setHasManualSlugOverride] = useState(() => Boolean(initialValues?.slug));
+  const [hasTouchedIconControls, setHasTouchedIconControls] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const iconOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -92,12 +104,19 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
   useEffect(() => {
     setValues(createFormState(initialValues));
     setHasManualSlugOverride(Boolean(initialValues?.slug));
+    setHasTouchedIconControls(false);
     setErrorMessage(null);
   }, [initialValues]);
 
   const customIconifyValidationMessage = getCustomIconifyValidationMessage(values.customIconifyIconId);
-  const effectiveIconKey = resolveCategoryIconKey(values.builtInIconKey, values.customIconifyIconId);
-  const effectiveIconSource = isValidIconifyIconId(values.customIconifyIconId) ? "Custom Iconify ID" : "Built-in picker";
+  const untouchedLegacyIconKey = !hasTouchedIconControls ? getUntouchedLegacyIconKey(initialValues) : null;
+  const resolvedIconKey = resolveCategoryIconKey(values.builtInIconKey, values.customIconifyIconId);
+  const effectiveIconKey = untouchedLegacyIconKey ?? resolvedIconKey;
+  const effectiveIconSource = untouchedLegacyIconKey
+    ? "Existing saved legacy icon"
+    : isValidIconifyIconId(values.customIconifyIconId)
+      ? "Custom Iconify ID"
+      : "Built-in picker";
   const effectiveIconLabel = getCategoryIconDisplayLabel(effectiveIconKey);
   const customIconifyErrorId = customIconifyValidationMessage ? "category-custom-iconify-feedback" : undefined;
   const customIconifyDescribedBy = ["category-custom-iconify-help", customIconifyErrorId].filter(Boolean).join(" ");
@@ -114,12 +133,10 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
     setIsSubmitting(true);
 
     try {
-      const iconKey = resolveCategoryIconKey(values.builtInIconKey, values.customIconifyIconId);
-
       await onSubmit({
         name: values.name,
         slug: values.slug,
-        iconKey,
+        iconKey: effectiveIconKey,
         sortOrder: values.sortOrder,
         isVisible: values.isVisible,
       });
@@ -135,6 +152,7 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
   }
 
   function selectIcon(builtInIconKey: string) {
+    setHasTouchedIconControls(true);
     setValues((current) => ({ ...current, builtInIconKey }));
   }
 
@@ -283,6 +301,7 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
           value={values.customIconifyIconId}
           onChange={(event) => {
             setErrorMessage(null);
+            setHasTouchedIconControls(true);
             setValues((current) => ({ ...current, customIconifyIconId: event.target.value.trim() }));
           }}
           placeholder="mdi:home"
