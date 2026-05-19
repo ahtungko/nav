@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SELF } from "cloudflare:test";
+import { env, SELF } from "cloudflare:test";
 
 type CreatedCategory = {
   id: string;
@@ -126,7 +126,7 @@ describe("POST /api/admin/categories", () => {
     expect(updated.iconKey).toBe("tabler:robot");
   });
 
-  it("preserves edit compatibility for legacy category icon values", async () => {
+  it("rejects updating a modern category to a legacy icon value", async () => {
     const cookie = await loginAsAdmin();
 
     const createResponse = await createCategory(cookie);
@@ -134,10 +134,32 @@ describe("POST /api/admin/categories", () => {
     const created = (await createResponse.json()) as CreatedCategory;
 
     const updateResponse = await updateCategory(cookie, created.id, { iconKey: "sparkles" });
+    expect(updateResponse.status).toBe(400);
+    expect(await updateResponse.json()).toEqual({ error: "invalid_request" });
+  });
+
+  it("preserves edit compatibility for an existing legacy category icon value", async () => {
+    const cookie = await loginAsAdmin();
+    const now = "2026-05-19T00:00:00.000Z";
+
+    await env.DB.prepare(
+      `INSERT INTO categories (id, name, slug, icon_key, sort_order, is_visible, created_at, updated_at)
+       VALUES (?1, ?2, ?3, ?4, ?5, 1, ?6, ?6)`,
+    )
+      .bind("cat_legacy", "Legacy Category", "legacy-category", "sparkles", 1, now)
+      .run();
+
+    const updateResponse = await updateCategory(cookie, "cat_legacy", {
+      name: "Legacy Category Updated",
+      slug: "legacy-category-updated",
+      iconKey: "brain",
+      sortOrder: 2,
+      isVisible: true,
+    });
     expect(updateResponse.status).toBe(200);
 
     const updated = (await updateResponse.json()) as CreatedCategory;
-    expect(updated.iconKey).toBe("sparkles");
+    expect(updated.iconKey).toBe("brain");
   });
 
   it("allows slug reuse after a category slug is edited", async () => {

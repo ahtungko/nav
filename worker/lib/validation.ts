@@ -4,8 +4,8 @@ import { isValidCategoryIconValue } from "../../src/lib/category-icon-registry";
 const nonBlankString = z.string().trim().min(1);
 const LEGACY_CATEGORY_ICON_KEYS = new Set(["sparkles", "palette", "eye-off", "brain"]);
 
-function isAcceptedCategoryIconValue(value: string): boolean {
-  return isValidCategoryIconValue(value) || LEGACY_CATEGORY_ICON_KEYS.has(value);
+export function isLegacyCategoryIconKey(value: string | null | undefined): boolean {
+  return typeof value === "string" && LEGACY_CATEGORY_ICON_KEYS.has(value);
 }
 
 const categoryInputShape = {
@@ -36,7 +36,7 @@ export const categoryCreateInputSchema = z.object({
 
 export const categoryUpdateInputSchema = z.object({
   ...categoryInputShape,
-  iconKey: nonBlankString.refine(isAcceptedCategoryIconValue),
+  iconKey: nonBlankString,
 });
 
 export const websiteInputSchema = z.object({

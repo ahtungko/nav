@@ -1,8 +1,9 @@
 import type { Category } from "../../src/types/category";
+import { isValidCategoryIconValue } from "../../src/lib/category-icon-registry";
 import { d1First } from "../lib/d1";
 import { createCategoriesRepository } from "../lib/repositories/categories";
 import { jsonError, noContent } from "../lib/response";
-import { categoryCreateInputSchema, categoryUpdateInputSchema, readJson } from "../lib/validation";
+import { categoryCreateInputSchema, categoryUpdateInputSchema, isLegacyCategoryIconKey, readJson } from "../lib/validation";
 import type { CategoryRow, Env } from "../types";
 
 function toCategory(row: CategoryRow): Category {
@@ -95,6 +96,13 @@ export async function handleAdminCategoriesRequest(
     const parsed = categoryUpdateInputSchema.safeParse(body);
 
     if (!parsed.success) {
+      return jsonError("invalid_request", 400);
+    }
+
+    const allowsLegacyIconKey = isLegacyCategoryIconKey(current.icon_key);
+    const nextIconKey = parsed.data.iconKey;
+
+    if (!isValidCategoryIconValue(nextIconKey) && !(allowsLegacyIconKey && isLegacyCategoryIconKey(nextIconKey))) {
       return jsonError("invalid_request", 400);
     }
 
