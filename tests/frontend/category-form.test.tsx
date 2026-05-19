@@ -79,19 +79,32 @@ describe("CategoryForm", () => {
     expect(screen.getByText(/effective icon key: mdi:star/i)).toBeInTheDocument();
   });
 
-  it("blocks submit for a malformed custom iconify id and falls the preview back to the built-in icon", async () => {
+  it("blocks submit for a malformed custom iconify id, marks the field invalid, and focuses it", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
 
     render(<CategoryForm onSubmit={onSubmit} />);
 
+    const customIconifyInput = screen.getByLabelText(/custom iconify id/i);
+
     fireEvent.click(screen.getByRole("radio", { name: /design/i }));
-    fireEvent.change(screen.getByLabelText(/custom iconify id/i), { target: { value: "mdi bad icon" } });
+    fireEvent.change(customIconifyInput, { target: { value: "mdi bad icon" } });
     fireEvent.change(screen.getByLabelText(/^name$/i), { target: { value: "Design" } });
     fireEvent.change(screen.getByLabelText(/^slug$/i), { target: { value: "design" } });
     fireEvent.change(screen.getByLabelText(/sort order/i), { target: { value: "2" } });
     fireEvent.click(screen.getByRole("button", { name: /save category/i }));
 
     expect(onSubmit).not.toHaveBeenCalled();
+    expect(customIconifyInput).toHaveFocus();
+    expect(customIconifyInput).toHaveAttribute("aria-invalid", "true");
+    expect(customIconifyInput).toHaveAttribute("aria-errormessage", "category-custom-iconify-feedback");
+    expect(customIconifyInput).toHaveAttribute(
+      "aria-describedby",
+      expect.stringContaining("category-custom-iconify-help"),
+    );
+    expect(customIconifyInput).toHaveAttribute(
+      "aria-describedby",
+      expect.stringContaining("category-custom-iconify-feedback"),
+    );
     expect(screen.getByText(/enter a valid iconify id/i)).toBeInTheDocument();
     expect(screen.queryByTestId("iconify-icon")).not.toBeInTheDocument();
     expect(screen.getByText(/effective icon key: design/i)).toBeInTheDocument();
@@ -123,5 +136,49 @@ describe("CategoryForm", () => {
     fireEvent.change(nameInput, { target: { value: "AI Tools Updated" } });
 
     expect(slugInput).toHaveValue("custom-slug");
+  });
+
+  it("preserves an existing saved non-empty slug while editing", () => {
+    render(
+      <CategoryForm
+        onSubmit={vi.fn()}
+        initialValues={{
+          name: "AI Tools",
+          slug: "ai-directory",
+          iconKey: "ai",
+          sortOrder: 1,
+          isVisible: true,
+        }}
+      />,
+    );
+
+    const nameInput = screen.getByLabelText(/^name$/i);
+    const slugInput = screen.getByLabelText(/^slug$/i);
+
+    fireEvent.change(nameInput, { target: { value: "AI Tools Updated" } });
+
+    expect(slugInput).toHaveValue("ai-directory");
+  });
+
+  it("keeps auto-slug mode when editing a category whose saved slug is blank", () => {
+    render(
+      <CategoryForm
+        onSubmit={vi.fn()}
+        initialValues={{
+          name: "AI Tools",
+          slug: "",
+          iconKey: "ai",
+          sortOrder: 1,
+          isVisible: true,
+        }}
+      />,
+    );
+
+    const nameInput = screen.getByLabelText(/^name$/i);
+    const slugInput = screen.getByLabelText(/^slug$/i);
+
+    fireEvent.change(nameInput, { target: { value: "AI Tools Updated" } });
+
+    expect(slugInput).toHaveValue("ai-tools-updated");
   });
 });

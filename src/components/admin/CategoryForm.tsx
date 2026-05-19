@@ -20,7 +20,11 @@ export type CategoryFormValues = {
   isVisible: boolean;
 };
 
-type CategoryFormState = CategoryFormValues & {
+type CategoryFormState = {
+  name: string;
+  slug: string;
+  sortOrder: number;
+  isVisible: boolean;
   builtInIconKey: string;
   customIconifyIconId: string;
 };
@@ -48,7 +52,10 @@ type CategoryFormProps = {
 function createFormState(initialValues?: CategoryFormValues | null): CategoryFormState {
   if (!initialValues) {
     return {
-      ...emptyValues,
+      name: emptyValues.name,
+      slug: emptyValues.slug,
+      sortOrder: emptyValues.sortOrder,
+      isVisible: emptyValues.isVisible,
       builtInIconKey: DEFAULT_CATEGORY_ICON_KEY,
       customIconifyIconId: "",
     };
@@ -57,8 +64,10 @@ function createFormState(initialValues?: CategoryFormValues | null): CategoryFor
   const { builtInIconKey, customIconifyIconId } = splitCategoryIconValue(initialValues.iconKey);
 
   return {
-    ...initialValues,
-    iconKey: initialValues.iconKey,
+    name: initialValues.name,
+    slug: initialValues.slug,
+    sortOrder: initialValues.sortOrder,
+    isVisible: initialValues.isVisible,
     builtInIconKey,
     customIconifyIconId,
   };
@@ -78,6 +87,7 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const iconOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const customIconifyInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setValues(createFormState(initialValues));
@@ -89,12 +99,15 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
   const effectiveIconKey = resolveCategoryIconKey(values.builtInIconKey, values.customIconifyIconId);
   const effectiveIconSource = isValidIconifyIconId(values.customIconifyIconId) ? "Custom Iconify ID" : "Built-in picker";
   const effectiveIconLabel = getCategoryIconDisplayLabel(effectiveIconKey);
+  const customIconifyErrorId = customIconifyValidationMessage ? "category-custom-iconify-feedback" : undefined;
+  const customIconifyDescribedBy = ["category-custom-iconify-help", customIconifyErrorId].filter(Boolean).join(" ");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage(null);
 
     if (customIconifyValidationMessage) {
+      customIconifyInputRef.current?.focus();
       return;
     }
 
@@ -266,13 +279,17 @@ export function CategoryForm({ selectedName, initialValues, onSubmit, onCancel, 
       <label className="admin-field">
         <span>Custom Iconify ID</span>
         <input
+          ref={customIconifyInputRef}
           value={values.customIconifyIconId}
           onChange={(event) => {
             setErrorMessage(null);
             setValues((current) => ({ ...current, customIconifyIconId: event.target.value.trim() }));
           }}
           placeholder="mdi:home"
-          aria-describedby="category-custom-iconify-help category-custom-iconify-feedback"
+          aria-describedby={customIconifyDescribedBy}
+          aria-invalid={customIconifyValidationMessage ? "true" : undefined}
+          aria-errormessage={customIconifyErrorId}
+          className={customIconifyValidationMessage ? "is-invalid" : undefined}
         />
         <p id="category-custom-iconify-help" className="admin-field__help">
           A valid custom Iconify ID overrides the built-in picker for preview and submit.
