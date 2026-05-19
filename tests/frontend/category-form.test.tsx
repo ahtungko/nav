@@ -75,6 +75,7 @@ describe("CategoryForm", () => {
     expect(screen.getByLabelText(/custom iconify id/i)).toHaveValue("mdi:star");
     expect(screen.getByRole("radio", { name: /^ai$/i })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByTestId("iconify-icon")).toHaveAttribute("data-icon", "mdi:star");
+    expect(screen.getByText(/preview source: custom iconify id/i)).toBeInTheDocument();
     expect(screen.getByText(/effective icon key: mdi:star/i)).toBeInTheDocument();
   });
 
