@@ -69,6 +69,16 @@ describe("POST /api/admin/categories", () => {
     expect(created.slug).toBe("ai");
   });
 
+  it("accepts a valid custom Iconify icon id when creating a category", async () => {
+    const cookie = await loginAsAdmin();
+
+    const response = await createCategory(cookie, { iconKey: "tabler:robot" });
+    expect(response.status).toBe(201);
+
+    const created = (await response.json()) as CreatedCategory;
+    expect(created.iconKey).toBe("tabler:robot");
+  });
+
   it("allows slug reuse after a category slug is edited", async () => {
     const cookie = await loginAsAdmin();
 
@@ -85,7 +95,7 @@ describe("POST /api/admin/categories", () => {
       body: JSON.stringify({
         name: "Machine Learning",
         slug: "ml",
-        iconKey: "sparkles",
+        iconKey: "tabler:sparkles",
         sortOrder: 2,
         isVisible: true,
       }),
@@ -95,7 +105,7 @@ describe("POST /api/admin/categories", () => {
     const reuseResponse = await createCategory(cookie, {
       name: "AI Again",
       slug: "ai",
-      iconKey: "brain",
+      iconKey: "design",
       sortOrder: 3,
     });
     expect(reuseResponse.status).toBe(201);
@@ -155,6 +165,15 @@ describe("POST /api/admin/categories", () => {
     const cookie = await loginAsAdmin();
 
     const response = await createCategory(cookie, { iconKey: "   " });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
+  it("rejects a malformed custom Iconify icon id", async () => {
+    const cookie = await loginAsAdmin();
+
+    const response = await createCategory(cookie, { iconKey: "tabler" });
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });

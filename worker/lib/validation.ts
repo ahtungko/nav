@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidCategoryIconValue } from "../../src/lib/category-icon-registry";
 
 const nonBlankString = z.string().trim().min(1);
 
@@ -19,7 +20,7 @@ const optionalSafeWebsiteUrlSchema = z.preprocess((value) => {
 export const categoryInputSchema = z.object({
   name: nonBlankString,
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
-  iconKey: nonBlankString,
+  iconKey: nonBlankString.refine(isValidCategoryIconValue),
   sortOrder: z.number().int(),
   isVisible: z.boolean(),
 });
