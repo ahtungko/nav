@@ -3,6 +3,16 @@ import { SELF, env } from "cloudflare:test";
 import { buildAdminSessionToken, verifyAdminSessionToken, verifyPassword } from "../../worker/lib/auth";
 import type { Env } from "../../worker/types";
 
+function createAuthEnv(overrides: Partial<Env> = {}): Env {
+  return {
+    DB: env.DB,
+    PUBLIC_SNAPSHOT: env.PUBLIC_SNAPSHOT,
+    ADMIN_PASSWORD: "fixture-admin-password",
+    ADMIN_SESSION_SECRET: "fixture-admin-session-secret",
+    ...overrides,
+  };
+}
+
 function readSessionToken(setCookie: string): string {
   const [cookie] = setCookie.split(";", 1);
   return cookie.split("=", 2)[1] ?? "";
@@ -10,49 +20,54 @@ function readSessionToken(setCookie: string): string {
 
 describe("admin session helpers", () => {
   it("signs and verifies with ADMIN_SESSION_SECRET rather than ADMIN_PASSWORD", async () => {
-    const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-a" });
+    const authEnv = createAuthEnv();
+    const token = await buildAdminSessionToken(authEnv, { now: 1_700_000_000, nonce: "nonce-a" });
 
     const differentPasswordEnv = {
-      ...env,
+      ...authEnv,
       ADMIN_PASSWORD: "different-password",
     } satisfies Env;
     const differentSecretEnv = {
-      ...env,
+      ...authEnv,
       ADMIN_SESSION_SECRET: "different-session-secret",
     } satisfies Env;
 
-    await expect(verifyPassword("secret", env)).resolves.toBe(true);
-    await expect(verifyPassword("session-secret", env)).resolves.toBe(false);
+    await expect(verifyPassword("fixture-admin-password", authEnv)).resolves.toBe(true);
+    await expect(verifyPassword("fixture-admin-session-secret", authEnv)).resolves.toBe(false);
     await expect(verifyAdminSessionToken(token, differentPasswordEnv, { now: 1_700_000_100 })).resolves.toBe(true);
     await expect(verifyAdminSessionToken(token, differentSecretEnv, { now: 1_700_000_100 })).resolves.toBe(false);
   });
 
   it("rejects tampering", async () => {
-    const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-tamper" });
+    const authEnv = createAuthEnv();
+    const token = await buildAdminSessionToken(authEnv, { now: 1_700_000_000, nonce: "nonce-tamper" });
 
-    await expect(verifyAdminSessionToken(token, env, { now: 1_700_000_100 })).resolves.toBe(true);
-    await expect(verifyAdminSessionToken(`${token}tampered`, env, { now: 1_700_000_100 })).resolves.toBe(false);
+    await expect(verifyAdminSessionToken(token, authEnv, { now: 1_700_000_100 })).resolves.toBe(true);
+    await expect(verifyAdminSessionToken(`${token}tampered`, authEnv, { now: 1_700_000_100 })).resolves.toBe(false);
   });
 
   it("rejects tokens with extra segments", async () => {
-    const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-extra" });
+    const authEnv = createAuthEnv();
+    const token = await buildAdminSessionToken(authEnv, { now: 1_700_000_000, nonce: "nonce-extra" });
 
-    await expect(verifyAdminSessionToken(`${token}.extra`, env, { now: 1_700_000_100 })).resolves.toBe(false);
+    await expect(verifyAdminSessionToken(`${token}.extra`, authEnv, { now: 1_700_000_100 })).resolves.toBe(false);
   });
 
   it("rejects expired tokens", async () => {
-    const token = await buildAdminSessionToken(env, {
+    const authEnv = createAuthEnv();
+    const token = await buildAdminSessionToken(authEnv, {
       now: 1_700_000_000,
       ttlSeconds: 60,
       nonce: "nonce-b",
     });
 
-    await expect(verifyAdminSessionToken(token, env, { now: 1_700_000_061 })).resolves.toBe(false);
+    await expect(verifyAdminSessionToken(token, authEnv, { now: 1_700_000_061 })).resolves.toBe(false);
   });
 
   it("throws when ADMIN_SESSION_SECRET is missing during build", async () => {
+    const authEnv = createAuthEnv();
     const missingSecretEnv = {
-      ...env,
+      ...authEnv,
       ADMIN_SESSION_SECRET: undefined,
     } satisfies Env;
 
@@ -62,9 +77,10 @@ describe("admin session helpers", () => {
   });
 
   it("returns false when ADMIN_SESSION_SECRET is missing during verify", async () => {
-    const token = await buildAdminSessionToken(env, { now: 1_700_000_000, nonce: "nonce-missing-secret" });
+    const authEnv = createAuthEnv();
+    const token = await buildAdminSessionToken(authEnv, { now: 1_700_000_000, nonce: "nonce-missing-secret" });
     const missingSecretEnv = {
-      ...env,
+      ...authEnv,
       ADMIN_SESSION_SECRET: undefined,
     } satisfies Env;
 
@@ -74,10 +90,13 @@ describe("admin session helpers", () => {
 
 describe("POST /api/auth/login", () => {
   it("returns 204 and sets a verifiable cookie for the correct password", async () => {
+    const loginPassword = env.ADMIN_PASSWORD;
+    expect(loginPassword).toBeTypeOf("string");
+
     const response = await SELF.fetch("https://example.com/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password: "secret" }),
+      body: JSON.stringify({ password: loginPassword }),
     });
 
     expect(response.status).toBe(204);
@@ -93,16 +112,19 @@ describe("POST /api/auth/login", () => {
   });
 
   it("emits a fresh token on each successful login", async () => {
+    const loginPassword = env.ADMIN_PASSWORD;
+    expect(loginPassword).toBeTypeOf("string");
+
     const first = await SELF.fetch("https://example.com/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password: "secret" }),
+      body: JSON.stringify({ password: loginPassword }),
     });
 
     const second = await SELF.fetch("https://example.com/api/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password: "secret" }),
+      body: JSON.stringify({ password: loginPassword }),
     });
 
     const firstToken = readSessionToken(first.headers.get("set-cookie")!);
