@@ -44,6 +44,30 @@ async function createCategory(cookie: string, payload?: Partial<{ name: string; 
   return response;
 }
 
+async function updateCategory(
+  cookie: string,
+  categoryId: string,
+  payload?: Partial<{ name: string; slug: string; iconKey: string; sortOrder: number; isVisible: boolean }>,
+) {
+  const response = await SELF.fetch(`https://example.com/api/admin/categories/${categoryId}`, {
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      cookie,
+    },
+    body: JSON.stringify({
+      name: "AI Updated",
+      slug: "ai-updated",
+      iconKey: "ai",
+      sortOrder: 2,
+      isVisible: true,
+      ...payload,
+    }),
+  });
+
+  return response;
+}
+
 describe("POST /api/admin/categories", () => {
   it("rejects forged cookie values", async () => {
     const response = await SELF.fetch("https://example.com/api/admin/categories", {
@@ -79,6 +103,34 @@ describe("POST /api/admin/categories", () => {
     expect(created.iconKey).toBe("tabler:robot");
   });
 
+  it("accepts and persists a valid custom Iconify icon id when updating a category", async () => {
+    const cookie = await loginAsAdmin();
+
+    const createResponse = await createCategory(cookie);
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as CreatedCategory;
+
+    const updateResponse = await updateCategory(cookie, created.id, { iconKey: "tabler:robot" });
+    expect(updateResponse.status).toBe(200);
+
+    const updated = (await updateResponse.json()) as CreatedCategory;
+    expect(updated.iconKey).toBe("tabler:robot");
+  });
+
+  it("preserves edit compatibility for legacy category icon values", async () => {
+    const cookie = await loginAsAdmin();
+
+    const createResponse = await createCategory(cookie);
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as CreatedCategory;
+
+    const updateResponse = await updateCategory(cookie, created.id, { iconKey: "sparkles" });
+    expect(updateResponse.status).toBe(200);
+
+    const updated = (await updateResponse.json()) as CreatedCategory;
+    expect(updated.iconKey).toBe("sparkles");
+  });
+
   it("allows slug reuse after a category slug is edited", async () => {
     const cookie = await loginAsAdmin();
 
@@ -86,19 +138,12 @@ describe("POST /api/admin/categories", () => {
     expect(createResponse.status).toBe(201);
     const created = (await createResponse.json()) as CreatedCategory;
 
-    const updateResponse = await SELF.fetch(`https://example.com/api/admin/categories/${created.id}`, {
-      method: "PUT",
-      headers: {
-        "content-type": "application/json",
-        cookie,
-      },
-      body: JSON.stringify({
-        name: "Machine Learning",
-        slug: "ml",
-        iconKey: "tabler:sparkles",
-        sortOrder: 2,
-        isVisible: true,
-      }),
+    const updateResponse = await updateCategory(cookie, created.id, {
+      name: "Machine Learning",
+      slug: "ml",
+      iconKey: "tabler:sparkles",
+      sortOrder: 2,
+      isVisible: true,
     });
     expect(updateResponse.status).toBe(200);
 
@@ -174,6 +219,19 @@ describe("POST /api/admin/categories", () => {
     const cookie = await loginAsAdmin();
 
     const response = await createCategory(cookie, { iconKey: "tabler" });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+  });
+
+  it("rejects a malformed custom Iconify icon id when updating a category", async () => {
+    const cookie = await loginAsAdmin();
+
+    const createResponse = await createCategory(cookie);
+    expect(createResponse.status).toBe(201);
+    const created = (await createResponse.json()) as CreatedCategory;
+
+    const response = await updateCategory(cookie, created.id, { iconKey: "tabler" });
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalid_request" });

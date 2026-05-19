@@ -2,6 +2,11 @@ import { z } from "zod";
 import { isValidCategoryIconValue } from "../../src/lib/category-icon-registry";
 
 const nonBlankString = z.string().trim().min(1);
+const LEGACY_CATEGORY_ICON_KEYS = new Set(["sparkles", "palette", "eye-off", "brain"]);
+
+function isAcceptedCategoryIconValue(value: string): boolean {
+  return isValidCategoryIconValue(value) || LEGACY_CATEGORY_ICON_KEYS.has(value);
+}
 
 const safeWebsiteUrlSchema = z.string().url().refine((value) => {
   const protocol = new URL(value).protocol;
@@ -20,7 +25,7 @@ const optionalSafeWebsiteUrlSchema = z.preprocess((value) => {
 export const categoryInputSchema = z.object({
   name: nonBlankString,
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
-  iconKey: nonBlankString.refine(isValidCategoryIconValue),
+  iconKey: nonBlankString.refine(isAcceptedCategoryIconValue),
   sortOrder: z.number().int(),
   isVisible: z.boolean(),
 });
